@@ -20,6 +20,7 @@ You should have `dotnet` on your path at this point. `dotnet --info` will print 
 Clone the JitBench Repo
 
 `git clone <JitBench repo>`
+
 `cd JitBench`
 
 **Step 2:**
@@ -27,6 +28,7 @@ Clone the JitBench Repo
 Restore dependency packages 
 
 `cd src\MusicStore`
+
 `dotnet restore`
 
 **Step 3:** 
