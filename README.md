@@ -53,13 +53,24 @@ Run the app
 
 ## Limitations
 
-Our scripts **assume** the `win7-x64` platform, and CoreCLR version `1.0.2`. There's work underway to add `dotnet crossgen` as a full-fledged command in the CLI, so any work we do to enhance these scripts beyond what's necessary will be thrown away soon. We're building crossgen support into the product, and we'll want to dogfood that as soon as it's available.
+Our scripts **assume** the `1.0.1` sdk, `win7-x64` platform, and CoreCLR version `1.0.4`. There's work underway to add `dotnet crossgen` as a full-fledged command in the CLI, so any work we do to enhance these scripts beyond what's necessary will be thrown away soon. We're building crossgen support into the product, and we'll want to dogfood that as soon as it's available.
 
 ## Powershell Errors
 
 The scripts in this repo use powershell. If you're not a powershell user you will have to do some first-time setup on your machine.
 
 Open powershell as admin and run `Set-ExecutionPolicy Unrestricted`, accept the prompt. By default powershell does not allow you to run scripts :-1:
+
+## Crossgen Outut
+
+You will see message fly by when running `Invoke-Crossgen.ps1` like the following:
+```
+ReadyToRun: Implicit boxing for calls to constrained methods not supported
+...  
+Target-dependent SIMD vector types may not be used with ngen. while compiling method token 0x600050d
+```
+
+At this time, these messages are expected and reflect things that crossgen is not able to handle.
 
 ## About MusicStore
 
@@ -79,9 +90,11 @@ If you make any changes that affect dependencies, re-run `dotnet restore`.
 
 ### Step 4: `dotnet publish -c Release -f netcoreapp10`
 
-This will build and publish the application in the `Release` configuration and targeting `netcoreapp10` as the target framework. `netcoreapp10` is what we refer to as the *shared framework*. At runtime, this will use the CoreCLR and CoreFx libraries from `C:\Program Files\dotnet\shared\Microsoft.NETCore.App\<version>`. The MusicStore app currently targets 1.0.0.
+This will build and publish the application in the `Release` configuration and targeting `netcoreapp10` as the target framework. `netcoreapp10` is what we refer to as the *shared framework*. At runtime, this will use the CoreCLR and CoreFx libraries from `C:\Program Files\dotnet\shared\Microsoft.NETCore.App\<version>`. The MusicStore app currently targets 1.0.1.
 
 Additionally, this step will run a script to download the `crossgen.exe` and JIT binaries from NuGet. This is hooked up using a `prepublish` even in the `project.json` file. If you look at the publish output, you'll see a folder called `crossgen` which contains these binaries.
+
+This step also copies the `Invoke-Crossgen.ps1` script from the project directory to the output directory. If you make changes to `Invoke-Crossgen.ps1` then be aware that there are two copies.
 
 ### Step 5: `Invoke-Crossgen.ps1`
 
@@ -89,4 +102,12 @@ This script does its best to run `crossgen.exe` on the binaries that will be use
 
 ### Step 6: `dotnet MusicStore.dll`
 
-Runs the app. We're using the *shared framework* so the actual `.exe` that runs here is `dotnet.exe`. The app itself is a `.dll` with a `Main(...)` method.
+Runs the app. We're using the *shared framework* so the actual `.exe` that runs here is `dotnet.exe`. The app itself is a `.dll` with a `Main(...)` method. It's **very important** that you do this with `pwd` set to the publish folder. The app will use the `pwd` to determine where view templates are located.
+
+You can additionally pass a `--fx-version` argument, which will allow you to run with the specified version of the shared framework/CoreCLR. 
+
+```
+dotnet --fx-version 1.0.2-private-build MusicStore.dll
+```
+
+The above command will look for the shared runtime at `C:\Program Files\dotnet\shared\Microsoft.NETCore.App\1.0.2-private-build`
