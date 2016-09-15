@@ -18,10 +18,10 @@ if (-not (Test-Path $path))
 $platform = "win7-x64"
 
 $coreclrpackage = "runtime.$platform.Microsoft.NETCore.Runtime.CoreCLR"
-$coreclrversion = "1.0.2"
+$coreclrversion = "1.0.4"
 
 $clrjitpackage = "runtime.$platform.Microsoft.NETCore.Jit"
-$clrjitversion = "1.0.2"
+$clrjitversion = "1.0.4"
 
 
 Write-Host -ForegroundColor Green "Getting NuGet.exe"

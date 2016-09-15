@@ -11,7 +11,7 @@ If you need to grant access to this repository for someone, please contact @eilo
 
 **Step 0:** 
 
-Download and install the dotnet CLI - https://www.microsoft.com/net/core
+Download and install the dotnet 1.0.1 SDK - https://go.microsoft.com/fwlink/?LinkID=827524
 
 You should have `dotnet` on your path at this point. `dotnet --info` will print the version.
 
