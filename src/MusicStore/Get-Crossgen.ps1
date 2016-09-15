@@ -31,9 +31,6 @@ $nugetfeed = "https://www.nuget.org/api/v2"
 $nugetexepath = "$path\NuGet.exe"
 $wc = New-Object System.Net.WebClient
 $wc.DownloadFile($nugeturl, $nugetexepath)
-if ($LastExitCode -ne 0) {
-    throw "NuGet.exe download failed."
-}
 
 
 Write-Host -ForegroundColor Green "Getting $coreclrpackage $coreclrversion"
