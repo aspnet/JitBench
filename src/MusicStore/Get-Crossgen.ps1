@@ -18,16 +18,16 @@ if (-not (Test-Path $path))
 $platform = "win7-x64"
 
 $coreclrpackage = "runtime.$platform.Microsoft.NETCore.Runtime.CoreCLR"
-$coreclrversion = "1.0.4"
+$coreclrversion = "1.1.0-preview1-24608-01"
 
 $clrjitpackage = "runtime.$platform.Microsoft.NETCore.Jit"
-$clrjitversion = "1.0.4"
+$clrjitversion = "1.1.0-preview1-24608-01"
 
 
 Write-Host -ForegroundColor Green "Getting NuGet.exe"
 
 $nugeturl = "https://dist.nuget.org/win-x86-commandline/v3.4.4/NuGet.exe"
-$nugetfeed = "https://www.nuget.org/api/v2"
+$nugetfeed = "https://api.nuget.org/v3/index.json"
 $nugetexepath = "$path\NuGet.exe"
 $wc = New-Object System.Net.WebClient
 $wc.DownloadFile($nugeturl, $nugetexepath)

@@ -1,11 +1,11 @@
 # Runs crossgen.exe on a published application.
 #
-# Will look for 
+# Will look for crossgen.exe in pwd/.crossgen
 
 param(
     [string]$crossgen_path = $null, 
     [string]$runtime = "win7-x64",
-    [string]$sdk_version = "1.0.1")
+    [string]$sdk_version = "1.1.0-preview1-001100-00")
 
 $ErrorActionPreference = "Stop"
 
@@ -48,7 +48,7 @@ else
 function Invoke-Crossgen-Core($crossgen_exe, $item, $sdk_dir, $app_paths)
 {
     $item_dir = $item.DirectoryName
-    $out = Join-Path ($item.DirectoryName) ([io.path]::ChangeExtension($item.Name, ".ni.dll"))
+    $out = Join-Path ($item_dir) ([io.path]::ChangeExtension($item.Name, ".ni.dll"))
 
     $args = @()
     $args += "/Platform_Assemblies_Paths"
