@@ -47,11 +47,12 @@ else
 
 function Invoke-Crossgen-Core($crossgen_exe, $item, $sdk_dir, $app_paths)
 {
+    $item_dir = $item.DirectoryName
     $out = Join-Path ($item.DirectoryName) ([io.path]::ChangeExtension($item.Name, ".ni.dll"))
 
     $args = @()
     $args += "/Platform_Assemblies_Paths"
-    $args += """$sdk_dir"""
+    $args += """$item_dir"";" +  """$sdk_dir"""
 
     $app_path_arg = ""
     for ($i = 0; $i -lt $app_paths.Length; $i++)
@@ -87,7 +88,7 @@ function Invoke-Crossgen-Core($crossgen_exe, $item, $sdk_dir, $app_paths)
 
 foreach ($app_path in $app_paths)
 {
-    foreach ($file in Get-ChildItem $app_path -Filter *.dll)
+    foreach ($file in Get-ChildItem $app_path -Filter *.dll | where { -not ($_.Name -eq "MusicStore.dll") })
     {
         Invoke-Crossgen-Core $crossgen_path $file $sdk_dir $app_paths
     }
