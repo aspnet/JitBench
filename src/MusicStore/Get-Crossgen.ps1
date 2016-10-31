@@ -15,19 +15,48 @@ if (-not (Test-Path $path))
     New-Item -Path $path -ItemType Directory -Force
 }
 
+function Get-CoreCLRVersion()
+{
+    if (-not (Test-Path $PSScriptRoot\obj\project.assets.json))
+    {
+        Write-Error "project.lock.json is missing. do a dotnet restore."
+        exit
+    }
+    
+    # ConvertFrom-Json can't be used here as it has an arbitrary size limit.
+    [void][System.Reflection.Assembly]::LoadWithPartialName("System.Web.Extensions")
+    $serializer = New-Object -TypeName System.Web.Script.Serialization.JavaScriptSerializer 
+    $serializer.MaxJsonLength  = 67108864
+    
+    $json = $serializer.DeserializeObject((Get-Content $PSScriptRoot\obj\project.assets.json -Raw))
+
+    foreach ($name in $json["libraries"].Keys)
+    {
+        if ($name.StartsWith("Microsoft.NETCore.Runtime.CoreCLR/"))
+        {
+            $version = $name.SubString("Microsoft.NETCore.Runtime.CoreCLR/".Length)
+            break
+        }
+    }
+    
+    return $version
+}
+
+$version = Get-CoreCLRVersion
+Write-Host -ForegroundColor Green "autodetected CoreCLR version $version"
+
 $platform = "win7-x64"
 
 $coreclrpackage = "runtime.$platform.Microsoft.NETCore.Runtime.CoreCLR"
-$coreclrversion = "1.1.0-preview1-24608-01"
+$coreclrversion = $version
 
 $clrjitpackage = "runtime.$platform.Microsoft.NETCore.Jit"
-$clrjitversion = "1.1.0-preview1-24608-01"
-
+$clrjitversion = $version
 
 Write-Host -ForegroundColor Green "Getting NuGet.exe"
 
 $nugeturl = "https://dist.nuget.org/win-x86-commandline/v3.4.4/NuGet.exe"
-$nugetfeed = "https://api.nuget.org/v3/index.json"
+$nugetfeed = "https://dotnet.myget.org/F/dotnet-core/api/v3/index.json"
 $nugetexepath = "$path\NuGet.exe"
 $wc = New-Object System.Net.WebClient
 $wc.DownloadFile($nugeturl, $nugetexepath)

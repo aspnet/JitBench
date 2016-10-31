@@ -5,23 +5,32 @@ A repository for aspnet workloads suitable for testing the JIT.
 
 Right now there is only one workload app here, at `src/MusicStore`
 
-If you need to grant access to this repository for someone, please contact @eilon and @rynowak.
+## Important
+
+This branch is for testing of the **latest builds** of ASP.NET Core and .NET Core. This is somewhat unstable and may break from time to time. Use one of the other branches for a stable experience.
+
+The instructions here assume that you need to test latest builds and may need to substitute private builds of CoreCLR to do so. Everything here is hardcoded to win7-x64.
 
 ## Instructions for JIT testing:
 
-**Step 0:** 
-
-Download and install the dotnet 1.0.1 SDK - https://go.microsoft.com/fwlink/?LinkID=827524
-
-You should have `dotnet` on your path at this point. `dotnet --info` will print the version.
-
-**Step 1:**
+**Step 0:**
 
 Clone the JitBench Repo
 
 `git clone <JitBench repo>`
 
 `cd JitBench`
+
+**Step 1:**
+
+Get the newest dotnet Shared Runtime as 'repo local' 
+
+`.\Dotnet-Install.ps1 -SharedRuntime -InstallDir .dotnet -Channel master -Architecture x64`
+`.\Dotnet-Install.ps1 -InstallDir .dotnet -Architecture x64`
+
+You need to run **both** of these commands in this particular order. This will grab the latest shared runtime and SDK and copy them to `<JitBench>\.dotnet`
+
+You should also have this version of `dotnet` on your path at this point. `dotnet --info` will print the version and it should match what you see in the output of the above commands.
 
 **Step 2:**
 
@@ -31,21 +40,33 @@ Restore dependency packages
 
 `dotnet restore`
 
-**Step 3:** 
+**Step 3:**
 
-Build/publish MusicStore
+Modify the shared framework (if necessary).
 
-`dotnet publish -c Release -f netcoreapp10`
+If you need to use a private build of the JIT or other CoreCLR components, now is a good time to update the shared framework with your bits. Copy any binaries you need to use into the shared framework in `<JitBench>\.dotnet\shared\Microsoft.NETCore.App\<version>`. The version should match the version that downloaded in step 1.
 
 **Step 4:** 
 
+Build/publish MusicStore
+
+`dotnet publish -c Release -f netcoreapp12`
+
+**Step 5:** 
+
 Run crossgen on the publish output
 
-`cd bin\Release\netcoreapp1.0\publish`
+`cd bin\Release\netcoreapp1.2\publish`
+
+**If you are using a private build of the JIT**
+
+`.\Invoke-Crossgen.ps1 -crossgen_path <path to crossgen.exe>` (powershell) or `powershell.exe .\Invoke-Crossgen.ps1 -crossgen_path <path to crossgen.exe>` (cmd)
+
+**else**
 
 `.\Invoke-Crossgen.ps1` (powershell) or `powershell.exe .\Invoke-Crossgen.ps1` (cmd)
 
-**Step 5:**
+**Step 6:**
 
 Run the app
 
@@ -53,7 +74,7 @@ Run the app
 
 ## Limitations
 
-Our scripts **assume** the `1.0.1` sdk, `win7-x64` platform, and CoreCLR version `1.0.4`. There's work underway to add `dotnet crossgen` as a full-fledged command in the CLI, so any work we do to enhance these scripts beyond what's necessary will be thrown away soon. We're building crossgen support into the product, and we'll want to dogfood that as soon as it's available.
+Our scripts **assume** `win7-x64` platform. There's work underway to add `dotnet crossgen` as a full-fledged command in the CLI, so any work we do to enhance these scripts beyond what's necessary will be thrown away soon. We're building crossgen support into the product, and we'll want to dogfood that as soon as it's available.
 
 ## Powershell Errors
 
@@ -82,15 +103,15 @@ We've modified the app to start up the server and perform a single HTTP request 
 
 For an intro to dotnet CLI I suggest referring to their [docs](https://docs.microsoft.com/en-us/dotnet/articles/core/tools/index). We'll describe some of the steps here, but you should refer to the CLI docs as the primary source of information about CLI. If you have issues with the CLI please log them [here](https://github.com/dotnet/cli/issues).
 
-### Step 3: `dotnet restore`
+### Step 2: `dotnet restore`
 
 This downloads dependency packages from NuGet and installs them to `%USERPROFILE%\.nuget\packages`. The restore step changes *which* versions of dependencies are going to be used for compilation and runtime.
 
 If you make any changes that affect dependencies, re-run `dotnet restore`.
 
-### Step 4: `dotnet publish -c Release -f netcoreapp10`
+### Step 4: `dotnet publish -c Release -f netcoreapp12`
 
-This will build and publish the application in the `Release` configuration and targeting `netcoreapp10` as the target framework. `netcoreapp10` is what we refer to as the *shared framework*. At runtime, this will use the CoreCLR and CoreFx libraries from `C:\Program Files\dotnet\shared\Microsoft.NETCore.App\<version>`. The MusicStore app currently targets 1.0.1.
+This will build and publish the application in the `Release` configuration and targeting `netcoreapp12` as the target framework. `netcoreapp12` is what we refer to as the *shared framework*. At runtime, this will use the CoreCLR and CoreFx libraries from `C:\Program Files\dotnet\shared\Microsoft.NETCore.App\<version>`. The MusicStore app currently targets 1.0.1.
 
 Additionally, this step will run a script to download the `crossgen.exe` and JIT binaries from NuGet. This is hooked up using a `prepublish` even in the `project.json` file. If you look at the publish output, you'll see a folder called `crossgen` which contains these binaries.
 
