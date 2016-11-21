@@ -5,7 +5,17 @@ A repository for aspnet workloads suitable for testing the JIT.
 
 Right now there is only one workload app here, at `src/MusicStore`
 
-If you need to grant access to this repository for someone, please contact @eilon and @rynowak.
+## Branches
+
+This repo uses branches that target various releases for comparison purposes. Please make sure to follow the instructions in the readme for that particular branch that you are using. `dev` in particular is special.
+
+| branch             | version        | notes                                                                                                          |
+|--------------------|----------------|----------------------------------------------------------------------------------------------------------------|
+| master             | 1.0.1          |                                                                                                                |
+| dev                | 1.2.0-*        | dev targets the latest bits from aspnet and CoreCLR/CoreFx. Use this branch to test private builds of the CLR. |
+| rel/1.0.0          | 1.0.1          |                                                                                                                |
+| rel/1.1.0-preview1 | 1.1.0-preview1 |                                                                                                                |
+| rel/1.1.0          | 1.1.0          |       
 
 ## Instructions for JIT testing:
 
