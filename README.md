@@ -57,7 +57,7 @@ Build/publish MusicStore
 
 Run crossgen on the publish output
 
-`cd bin\Release\netcoreapp1.2\publish`
+`cd bin\Release\netcoreapp12\publish`
 
 **If you are using a private build of the JIT**
 

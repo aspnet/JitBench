@@ -50,12 +50,15 @@ $app_paths = @((Get-Item ".").FullName)
 
 if ($runtime -eq "win7-x64")
 {
-    $app_paths += (Get-Item ".\runtimes\win\lib\netstandard1.3").FullName
+    $app_paths += (Get-Item ".\runtimes\win\lib\netstandard1.7").FullName
+    $lib_paths += (Get-Item ".\runtimes\win\lib\netstandard1.7").FullName
 }
 else
 {
     throw "This script doesn't know what paths to use for runtime $runtime"
 }
+
+$lib_paths += $shared_fx_dir
 
 function join([string] $p, $collection)
 {
@@ -72,16 +75,16 @@ function join([string] $p, $collection)
     return $p
 }
 
-function Invoke-Crossgen-Core($crossgen_exe, $item, $shared_fx_dir, $app_paths)
+function Invoke-Crossgen-Core($crossgen_exe, $item, $lib_paths, $app_paths)
 {
     $item_dir = $item.DirectoryName
     $out = Join-Path ($item_dir) ([io.path]::ChangeExtension($item.Name, ".ni.dll"))
 
     $args = @()
     $args += "/Platform_Assemblies_Paths"
-    $args += """$shared_fx_dir"""
+    $args += join "" $lib_paths
 
-    $app_path_arg = join "" ($app_paths + $lib_paths)
+    $app_path_arg = join "" $app_paths
     
     $args += "/App_Paths"
     $args += $app_path_arg
@@ -108,6 +111,6 @@ foreach ($app_path in $app_paths)
 {
     foreach ($file in Get-ChildItem $app_path -Filter *.dll | where { -not ($excludes.Contains($_.Name)) })
     {
-        Invoke-Crossgen-Core $crossgen_path $file $shared_fx_dir $app_paths
+        Invoke-Crossgen-Core $crossgen_path $file $lib_paths $app_paths
     }
 }
