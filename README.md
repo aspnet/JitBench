@@ -51,13 +51,13 @@ If you need to use a private build of the JIT or other CoreCLR components, now i
 
 Build/publish MusicStore
 
-`dotnet publish -c Release -f netcoreapp12`
+`dotnet publish -c Release -f netcoreapp20`
 
 **Step 5:** 
 
 Run crossgen on the publish output
 
-`cd bin\Release\netcoreapp12\publish`
+`cd bin\Release\netcoreapp20\publish`
 
 **If you are using a private build of the JIT**
 

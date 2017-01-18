@@ -19,7 +19,7 @@ function Get-CoreCLRVersion()
 {
     if (-not (Test-Path $PSScriptRoot\obj\project.assets.json))
     {
-        Write-Error "project.lock.json is missing. do a dotnet restore."
+        Write-Error "project.assets.json is missing. do a dotnet restore."
         exit
     }
     
@@ -32,9 +32,9 @@ function Get-CoreCLRVersion()
 
     foreach ($name in $json["libraries"].Keys)
     {
-        if ($name.StartsWith("Microsoft.NETCore.Runtime.CoreCLR/"))
+        if ($name.StartsWith("Microsoft.NETCore.Targets/"))
         {
-            $version = $name.SubString("Microsoft.NETCore.Runtime.CoreCLR/".Length)
+            $version = $name.SubString("Microsoft.NETCore.Targets/".Length)
             break
         }
     }
