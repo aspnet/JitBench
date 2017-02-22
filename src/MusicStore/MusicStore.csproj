@@ -112,7 +112,7 @@
     <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
   </PropertyGroup>
 
-  <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish" Condition=" '$(IsCrossTargetingBuild)' != 'true' ">
+  <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish" Condition=" '$(IsCrossTargetingBuild)' != 'true' And '$(OS)' == 'Windows_NT' ">
     <Exec Command="powershell /c .\Get-Crossgen.ps1 $(PublishDir)\.crossgen" />
   </Target>
   
