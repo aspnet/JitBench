@@ -15,7 +15,7 @@ $lib_paths = @()
 $excludes = @("MusicStore.dll", "Microsoft.AspNetCore.Diagnostics.dll", "Microsoft.AspNetCore.Hosting.Abstractions.dll", "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore.dll", "Microsoft.AspNetCore.Hosting.dll", "Microsoft.AspNetCore.WebUtilities.dll", "Microsoft.DiaSymReader.Native.amd64.dll", "Microsoft.DiaSymReader.Native.x86.dll")
 
 $dotnet_dir = (Get-Item (Get-Command dotnet).Path).Directory
-$config = (Get-Content MusicStore.runtimeconfig.json) | ConvertFrom-Json
+$config = (Get-Content MusicStore.runtimeconfig.json -Raw) | ConvertFrom-Json
 $shared_fx_version = $config.runtimeOptions.framework.version
 $shared_fx_path = [io.path]::combine($dotnet_dir, "shared\Microsoft.NETCore.App", $shared_fx_version)
 
@@ -50,8 +50,8 @@ $app_paths = @((Get-Item ".").FullName)
 
 if ($runtime -eq "win7-x64")
 {
-    $app_paths += (Get-Item ".\runtimes\win\lib\netstandard1.7").FullName
-    $lib_paths += (Get-Item ".\runtimes\win\lib\netstandard1.7").FullName
+    $app_paths += (Get-Item ".\runtimes\win\lib\netcoreapp2.0").FullName
+    $lib_paths += (Get-Item ".\runtimes\win\lib\netcoreapp2.0").FullName
 }
 else
 {
