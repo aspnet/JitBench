@@ -27,7 +27,7 @@ Get the newest dotnet Shared Runtime as 'repo local'
 
 `.\Dotnet-Install.ps1 -SharedRuntime -InstallDir .dotnet -Channel master -Architecture x64`
 
-`.\Dotnet-Install.ps1 -InstallDir .dotnet -Architecture x64`
+`.\Dotnet-Install.ps1 -InstallDir .dotnet -Channel master -Architecture x64`
 
 You need to run **both** of these commands in this particular order. This will grab the latest shared runtime and SDK and copy them to `<JitBench>\.dotnet`
 
