@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.Net.Sdk.Web">
-  
+  <Import Project="..\..\build\common.props" />
   <PropertyGroup>
     <Description>Music store application on ASP.NET 5</Description>
     <TargetFramework>netcoreapp2.0</TargetFramework>
@@ -8,6 +8,9 @@
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>MusicStore</AssemblyName>
     <OutputType>Exe</OutputType>
+    
+    <!-- This will prevent our build system from trying to package this project. -->
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
