@@ -12,7 +12,7 @@ $ErrorActionPreference = "Stop"
 
 $lib_paths = @()
 
-$excludes = @("MusicStore.dll")
+$excludes = @("MusicStore.dll", "Microsoft.EntityFrameworkCore.dll")
 
 $dotnet_dir = (Get-Item (Get-Command dotnet).Path).Directory
 $config = (Get-Content MusicStore.runtimeconfig.json -Raw) | ConvertFrom-Json
