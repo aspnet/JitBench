@@ -32,9 +32,9 @@ function Get-CoreCLRVersion()
 
     foreach ($name in $json["libraries"].Keys)
     {
-        if ($name.StartsWith("Microsoft.NETCore.Targets/"))
+        if ($name.StartsWith("Microsoft.NETCore.Platforms/"))
         {
-            $version = $name.SubString("Microsoft.NETCore.Targets/".Length)
+            $version = $name.SubString("Microsoft.NETCore.Platforms/".Length)
             break
         }
     }
