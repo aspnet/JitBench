@@ -12,10 +12,12 @@ Write-Host -ForegroundColor Green "Installing crossgen.exe to $path"
 
 if (-not (Test-Path $path))
 {
-    New-Item -Path $path -ItemType Directory -Force
+    New-Item -Path $path -ItemType Directory -Force | Out-Null
 }
 
-function Get-CoreCLRVersion()
+$path = Get-Item $path
+
+function Get-NETCoreAppVersion()
 {
     if (-not (Test-Path $PSScriptRoot\obj\project.assets.json))
     {
@@ -32,9 +34,9 @@ function Get-CoreCLRVersion()
 
     foreach ($name in $json["libraries"].Keys)
     {
-        if ($name.StartsWith("Microsoft.NETCore.Platforms/"))
+        if ($name.StartsWith("Microsoft.NETCore.App/"))
         {
-            $version = $name.SubString("Microsoft.NETCore.Platforms/".Length)
+            $version = $name.SubString("Microsoft.NETCore.App/".Length)
             break
         }
     }
@@ -42,16 +44,13 @@ function Get-CoreCLRVersion()
     return $version
 }
 
-$version = Get-CoreCLRVersion
-Write-Host -ForegroundColor Green "autodetected CoreCLR version $version"
+$version = Get-NETCoreAppVersion
+Write-Host -ForegroundColor Green "autodetected shared framework version $version"
 
 $platform = "win7-x64"
 
-$coreclrpackage = "runtime.$platform.Microsoft.NETCore.Runtime.CoreCLR"
-$coreclrversion = $version
-
-$clrjitpackage = "runtime.$platform.Microsoft.NETCore.Jit"
-$clrjitversion = $version
+$netcoreapppackage = "runtime.$platform.microsoft.netcore.app"
+$netcoreappversion = $version
 
 Write-Host -ForegroundColor Green "Getting NuGet.exe"
 
@@ -62,26 +61,16 @@ $wc = New-Object System.Net.WebClient
 $wc.DownloadFile($nugeturl, $nugetexepath)
 
 
-Write-Host -ForegroundColor Green "Getting $coreclrpackage $coreclrversion"
+Write-Host -ForegroundColor Green "Getting $netcoreapppackage $netcoreappversion"
 
-& "$nugetexepath" "install", "$coreclrpackage", "-Source", "$nugetfeed", "-Version", "$coreclrversion", "-OutputDirectory", "$path"
+& "$nugetexepath" "install", "$netcoreapppackage", "-Source", "$nugetfeed", "-Version", "$netcoreappversion", "-OutputDirectory", "$path"
 if ($LastExitCode -ne 0) {
-    throw "NuGet install of $coreclrpackage failed."
+    throw "NuGet install of $netcoreapppackage failed."
 }
 
-Copy-Item "$path\$coreclrpackage.$coreclrversion\tools\crossgen.exe" "$path\crossgen.exe" -Force
-Remove-Item "$path\$coreclrpackage.$coreclrversion\" -recurse
-
-
-Write-Host -ForegroundColor Green "Getting $clrjitpackage $clrjitversion"
-
-& "$nugetexepath" "install", "$clrjitpackage", "-Source", "$nugetfeed", "-Version", "$clrjitversion", "-OutputDirectory", "$path"
-if ($LastExitCode -ne 0) {
-    throw "NuGet install of $clrjitpackage failed."
-}
-
-Copy-Item "$path\$clrjitpackage.$clrjitversion\runtimes\$platform\native\clrjit.dll" "$path\clrjit.dll" -Force
-Remove-Item "$path\$clrjitpackage.$clrjitversion\" -recurse
+Copy-Item "$path\$netcoreapppackage.$netcoreappversion\tools\crossgen.exe" "$path\crossgen.exe" -Force
+Copy-Item "$path\$netcoreapppackage.$netcoreappversion\runtimes\$platform\native\clrjit.dll" "$path\clrjit.dll" -Force
+Remove-Item "$path\$netcoreapppackage.$netcoreappversion\" -recurse
 
 Remove-Item "$path\NuGet.exe"
 
