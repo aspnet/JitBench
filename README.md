@@ -12,7 +12,7 @@ This repo uses branches that target various releases for comparison purposes. Pl
 | branch             | version        | notes                                                                                                          |
 |--------------------|----------------|----------------------------------------------------------------------------------------------------------------|
 | master             | 1.0.1          |                                                                                                                |
-| dev                | 1.2.0-*        | dev targets the latest bits from aspnet and CoreCLR/CoreFx. Use this branch to test private builds of the CLR. |
+| dev                | 2.0.0-*        | dev targets the latest bits from aspnet and CoreCLR/CoreFx. Use this branch to test private builds of the CLR. |
 | rel/1.0.0          | 1.0.1          |                                                                                                                |
 | rel/1.1.0-preview1 | 1.1.0-preview1 |                                                                                                                |
 | rel/1.1.0          | 1.1.0          |       
