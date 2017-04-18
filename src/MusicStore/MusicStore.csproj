@@ -11,80 +11,81 @@
     
     <!-- This will prevent our build system from trying to package this project. -->
     <IsPackable>false</IsPackable>
+    
+    <!-- This will be set as an environment variable to pin the package version. -->
+    <AspNetVersion>$(JITBENCH_ASPNET_VERSION)</AspNetVersion>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Content Include="Invoke-Crossgen.ps1">
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-  </ItemGroup>
+  
+  <PropertyGroup Condition=" '$(AspNetVersion)' == '' ">
+    <AspNetVersion>2.0.0-*</AspNetVersion>
+  </PropertyGroup>
   
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Mvc">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.TagHelpers">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Server.IISIntegration">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Session">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration.Json">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Console">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions">
-      <Version>1.2.0-*</Version>
+      <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="System.Diagnostics.StackTrace">
       <Version>4.4.0-*</Version>
@@ -95,8 +96,4 @@
     <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
   </PropertyGroup>
 
-  <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish" Condition=" '$(IsCrossTargetingBuild)' != 'true' And '$(OS)' == 'Windows_NT' ">
-    <Exec Command="powershell /c .\Get-Crossgen.ps1 $(PublishDir)\.crossgen" />
-  </Target>
-  
 </Project>
