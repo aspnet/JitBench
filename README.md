@@ -13,7 +13,7 @@ The instructions here assume that you need to test latest builds and may need to
 
 ## Instructions for JIT testing:
 
-**Step 0:**
+### Step 0:
 
 Clone the JitBench Repo
 
@@ -21,29 +21,44 @@ Clone the JitBench Repo
 
 `cd JitBench`
 
-**Step 1:**
+### Step 1:
 
 Get the newest dotnet Shared Runtime as 'repo local' 
+
+**Windows**
 
 `.\Dotnet-Install.ps1 -SharedRuntime -InstallDir .dotnet -Channel master -Architecture x64`
 
 `.\Dotnet-Install.ps1 -InstallDir .dotnet -Channel master -Architecture x64`
 
-You need to run **both** of these commands in this particular order. This will grab the latest shared runtime and SDK and copy them to `<JitBench>\.dotnet`
+**OSX**
+
+`./dotnet-install.sh -sharedruntime -installdir .dotnet -channel master -architecture x64`
+
+`source ./dotnet-install.sh -installdir .dotnet -channel master -architecture x64`
+
+
+You need to run **both** of these commands in this particular order. This will grab the latest shared runtime and SDK and copy them to `<JitBench>\.dotnet`. Note you need to `source` the second script so that it can update your `$PATH`.
 
 You should also have this version of `dotnet` on your path at this point. `dotnet --info` will print the version and it should match what you see in the output of the above commands.
 
-**Step 2:**
+### Step 2:
 
 Modify the shared framework (if necessary).
 
 If you need to use a private build of the JIT or other CoreCLR components, now is a good time to update the shared framework with your bits. Copy any binaries you need to use into the shared framework in `<JitBench>\.dotnet\shared\Microsoft.NETCore.App\<version>`. The version should match the version that downloaded in step 1.
 
-**Step 3a:**
+### Step 3a:
 
 Generate Crossgen/R2R binaries locally
 
+**Windows**
+
 `.\AspNet-GenerateStore.ps1 -InstallDir .store -Architecture x64 -Runtime win7-x64`
+
+**OSX**
+
+`source ./aspnet-generatestore.sh -i .store --arch x64 -r osx.10.12-x64`
 
 This will generate new crossgen/R2R images locally using the same shared framework version
 
@@ -51,7 +66,7 @@ This step will also set some environment variables that affect the behavior of t
 
 This step assumes the latest version of ASP.NET and the shared framework. Use the `-AspNetVersion` and `-FrameworkVersion` parameters to override these.
 
-**Step 3b: Optional**
+### Step 3b: (Alternative)
 
 Install the ASP.NET binaries
 
@@ -63,7 +78,7 @@ This step will also set some environment variables that affect the behavior of t
 
 This step assumes the latest version of ASP.NET and the shared framework. Use the `-AspNetVersion` and `-FrameworkVersion` parameters to override these.
 
-**Step 4:**
+### Step 4:
 
 Restore dependency packages
 
@@ -73,15 +88,23 @@ Restore dependency packages
 
 You should see that all of the ASP.NET dependencies that get restored during this stage have the same version number as the output of step 3. 
 
-**Step 5:** 
+### Step 5: 
 
 Build/publish MusicStore
+
+**Windows**
 
 `dotnet publish -c Release -f netcoreapp20 --manifest $env:JITBENCH_ASPNET_MANIFEST` (powershell)
 OR
 `dotnet publish -c Release -f netcoreapp20 --manifest %JITBENCH_ASPNET_MANIFEST%` (cmd)
 
-**Step 6:**
+**OSX**
+
+`dotnet publish -c Release -f netcoreapp20 --manifest $JITBENCH_ASPNET_MANIFEST`
+
+This will publish the app to `bin\Release\netcoreapp2.0\publish`. You should only see the `MusicStore.dll` and a few other project related assest here if you passed the `--manifest` argument.
+
+### Step 6:
 
 Run the app
 

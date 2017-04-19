@@ -5,8 +5,7 @@ param(
     [string] $Framework = "netcoreapp2.0",
     [string] $FrameworkVersion = "<auto>",
     [string] $Architecture = "x64",
-    [string] $Runtime = "win7-x64",
-    [string] $Feed = "https://dotnet.myget.org/F/aspnetcore-dev/api/v3/index.json")
+    [string] $Runtime = "win7-x64")
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference="Stop"
