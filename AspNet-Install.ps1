@@ -1,47 +1,25 @@
 [cmdletbinding()]
 param(
-   [string] $InstallDir = "<auto>",
-   [string] $Architecture = "x64",
-   [string] $Framework = "netcoreapp2.0",
-   [string] $Platform = "win",
-   [string] $Package = "Build.RuntimeStore",
-   [string] $Feed = "https://dotnet.myget.org/F/aspnetcore-dev/api/v3/index.json")
+    [string] $InstallDir = "<auto>",
+    [string] $Architecture = "x64",
+    [string] $Framework = "netcoreapp2.0",
+    [string] $FrameworkVersion = "<auto>",
+    [string] $Platform = "win",
+    [string] $Package = "Build.RuntimeStore",
+    [string] $Feed = "https://dotnet.myget.org/F/aspnetcore-dev/api/v3/index.json")
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference="Stop"
 $ProgressPreference="SilentlyContinue"
 
+. "$(Split-Path $MyInvocation.MyCommand.Path -Parent)\AspNet-Shared.ps1"
+
 # Create the installation directory and normalize to a fully qualified path
-if ($InstallDir -eq "<auto>")
-{
-    $InstallDir = Join-Path "." ".aspnet"
-}
-
-if (-not (Test-Path $InstallDir))
-{
-    New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
-}
-
-$InstallDir = (Get-Item $InstallDir).FullName
-
-function Get-NuGet([string] $url = "https://dist.nuget.org/win-x86-commandline/v4.1.0/NuGet.exe")
-{
-    $nuget = Join-Path $InstallDir "NuGet.exe"
-
-    if (-not (Test-Path $nuget))
-    {
-        Write-Host -ForegroundColor Green "Getting NuGet from $url"
-
-        $wc = New-Object System.Net.WebClient
-        $wc.DownloadFile($url, $nuget)
-    }
-    
-    return $nuget
-}
+$InstallDir = New-InstallDirectory -Directory $InstallDir -Default ".aspnet" -Clean -Create
 
 function Get-AspNetPackage()
 {
-    $nuget = Get-NuGet
+    $nuget = Get-NuGet $InstallDir
     
     Write-Host -ForegroundColor Green "Getting the ASP.NET package $Package. This may take a few minutes..."
 
@@ -51,7 +29,7 @@ function Get-AspNetPackage()
         throw "NuGet install of $Package failed."
     }
     
-    $versions = @(Get-ChildItem $InstallDir -Filter ($Package + '*') | Sort-Object Name | %{ $_.Name.Substring($Package.Length + 1) })
+    $versions = @(Get-ChildItem $InstallDir -Filter ($Package + '*') | Sort-Object Name | ForEach-Object { $_.Name.Substring($Package.Length + 1) })
 
     foreach ($version in $versions)
     {
@@ -62,7 +40,7 @@ function Get-AspNetPackage()
     return $versions[-1]
 }
 
-function Extract-AspNetBinaries([string] $Version)
+function Get-AspNetBinaries([string] $Version)
 {
     $directory = Join-Path $InstallDir "$Package.$Version"
     if (-not (Test-Path $directory))
@@ -93,11 +71,19 @@ function Extract-AspNetBinaries([string] $Version)
 }
 
 $PackageVersion = Get-AspNetPackage
-$BinariesDirectory = Extract-AspNetBinaries -Version $PackageVersion
+$BinariesDirectory = Get-AspNetBinaries -Version $PackageVersion
 $Manifest = [System.IO.Path]::Combine($BinariesDirectory, $Architecture, $Framework, 'artifact.xml')
+
+if ($FrameworkVersion -eq "<auto>")
+{
+    $FrameworkVersion = Get-FrameworkVersion
+}
 
 Write-Host -ForegroundColor Green "Setting JITBENCH_ASPNET_VERSION to $PackageVersion"
 $env:JITBENCH_ASPNET_VERSION = $PackageVersion
+
+Write-Host -ForegroundColor Green "Setting JITBENCH_FRAMEWORK_VERSION to $FrameworkVersion"
+$env:JITBENCH_FRAMEWORK_VERSION = $FrameworkVersion
 
 Write-Host -ForegroundColor Green "Setting JITBENCH_ASPNET_MANIFEST to $Manifest"
 $env:JITBENCH_ASPNET_MANIFEST = $Manifest

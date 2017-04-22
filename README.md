@@ -39,7 +39,19 @@ Modify the shared framework (if necessary).
 
 If you need to use a private build of the JIT or other CoreCLR components, now is a good time to update the shared framework with your bits. Copy any binaries you need to use into the shared framework in `<JitBench>\.dotnet\shared\Microsoft.NETCore.App\<version>`. The version should match the version that downloaded in step 1.
 
-**Step 3:**
+**Step 3a:**
+
+Generate Crossgen/R2R binaries locally
+
+`.\AspNet-GenerateStore.ps1 -InstallDir .store -Architecture x64 -Runtime win7-x64`
+
+This will generate new crossgen/R2R images locally using the same shared framework version
+
+This step will also set some environment variables that affect the behavior of the subsequent commands. You'll see in the console output some of the information about the environment variables that were set.
+
+This step assumes the latest version of ASP.NET and the shared framework. Use the `-AspNetVersion` and `-FrameworkVersion` parameters to override these.
+
+**Step 3b: Optional**
 
 Install the ASP.NET binaries
 
@@ -48,6 +60,8 @@ Install the ASP.NET binaries
 This will retrieve a zip of pre-optimized ASP.NET binaries and extract them for use with the MusicStore application. This may take a few minutes.
 
 This step will also set some environment variables that affect the behavior of the subsequent commands. You'll see in the console output some of the information about the environment variables that were set.
+
+This step assumes the latest version of ASP.NET and the shared framework. Use the `-AspNetVersion` and `-FrameworkVersion` parameters to override these.
 
 **Step 4:**
 
@@ -112,6 +126,10 @@ The scripts in this repo use powershell. If you're not a powershell user you wil
 
 Open powershell as admin and run `Set-ExecutionPolicy Unrestricted`, accept the prompt. By default powershell does not allow you to run scripts :-1:
 
+### What is Microsoft.AspNetCore.All
+
+This is a meta-package that contains all of the ASP.NET libraries. This is the easiest way to just pull in the whole platform as a reference. We expect that this will be the common way to build applications in ASP.NET going forward.
+
 ### What is Build.RuntimeStore?
 
 This is a big zip file of pre-optimized ASP.NET libraries. This is the best way for us to test the JIT because this is very close to what customers will use for local development or on a shared host like Azure in 2.0.0. Think of it like an add-on to the shared framework. Read the Explanation section below for a description of how this is wired up.
@@ -126,9 +144,9 @@ We've modified the app to start up the server and perform a single HTTP request 
 
 For an intro to dotnet CLI I suggest referring to their [docs](https://docs.microsoft.com/en-us/dotnet/articles/core/tools/index). We'll describe some of the steps here, but you should refer to the CLI docs as the primary source of information about CLI. If you have issues with the CLI please log them [here](https://github.com/dotnet/cli/issues).
 
-### Step 2: `.\AspNet-Install.ps1 -InstallDir .aspnet -Architecture x64`
+### Step 3a: `.\AspNet-GenerateStore.ps1 -InstallDir .store -Architecture x64 -Runtime win7-x64`
 
-This downloads pre-optimized ASP.NET binaries and unzips them under `.aspnet`. If you want to get an updated set of ASP.NET libraries, start at this step.
+This uses `dotnet store` to generate an optimized package store under `.store`. If you want to get an updated set of ASP.NET libraries, start at this step.
 
 -------------------
 
@@ -139,6 +157,12 @@ Setting JITBENCH_ASPNET_VERSION to 2.0.0-preview1-24493
 ```
 
 This means that the latest build of ASP.NET available at this time is `2.0.0-preview1-24493`. This environment variable will 'pin' the versions of the ASP.NET dependencies in the `.csproj` to match exactly the binaries that we just pulled down. There's no magic here, look at the `.csproj` to see how this works.
+
+```
+Setting JITBENCH_FRAMEWORK_VERSION to 2.0.0-preview2-002062-00
+```
+
+This means that the version of the shared framework that was selected was `2.0.0-preview2-002062-00`. This environment variable will 'pin' the versions of the shared framework in the `.csproj` to match exactly the binaries that we just pulled down. There's no magic here, look at the `.csproj` to see how this works.
 
 ```
 Setting JITBENCH_ASPNET_MANIFEST to D:\k\JitBench\.aspnet\AspNet.win-2.0.0-preview1-24493\x86\netcoreapp2.0\artifact.xml
@@ -152,7 +176,21 @@ Setting DOTNET_SHARED_STORE to D:\k\JitBench\.aspnet\AspNet.win-2.0.0-preview1-2
 
 This variable is probed by the `dotnet` host as an additional set of packages that the runtime can use. Note that the binaries here will only be used if they *match* and if they *are not present in 'bin'*. That's why the two other environment variables are important! See [here](https://github.com/dotnet/core-setup/blob/master/Documentation/design-docs/DotNetCore-SharedPackageStore.md) for a more thorough description.
 
-### Step 4: `dotnet publish -c Release -f netcoreapp20 --manifest $env:JITBENCH_ASPNET_MANIFEST`
+### Step 3b: `.\AspNet-Install.ps1 -InstallDir .aspnet -Architecture x64`
+
+This downloads pre-optimized ASP.NET binaries and unzips them under `.aspnet`. If you want to get an updated set of ASP.NET libraries, start at this step.
+
+-------------------
+
+This command will also set the same environment variables as step 3a.
+
+### Step 4: `dotnet restore`
+
+This will restore package and runtime dependencies. In general we already have these on the machine, we just need to update the generated files.
+
+This step will use the environment variables `JITBENCH_ASPNET_VERSION` and `JITBENCH_FRAMEWORK_VERSION` to pin the version of the ASP.NET libraries and shared framework based on Step 3.
+
+### Step 5: `dotnet publish -c Release -f netcoreapp20 --manifest $env:JITBENCH_ASPNET_MANIFEST`
 
 This will build and publish the application in the `Release` configuration and targeting `netcoreapp20` as the target framework. `netcoreapp20` is what we refer to as the *shared framework*.
 

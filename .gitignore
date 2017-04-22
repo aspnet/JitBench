@@ -2,6 +2,8 @@
 [Bb]in/
 .dotnet/
 .aspnet/
+.store/
+.packages/
 .vs/
 *.xap
 *.user
