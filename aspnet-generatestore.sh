@@ -103,6 +103,8 @@ then
     dotnet="$(which dotnet)"
     dotnet_root="$(dirname $dotnet)"
 
+    echo "dotnet root is $dotnet_root"
+
     framework_version="$(ls $dotnet_root/shared/Microsoft.NETCore.App -A | tail -1)"
     echo "Selected version $framework_version"
 fi
