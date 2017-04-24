@@ -94,13 +94,13 @@ Build/publish MusicStore
 
 **Windows**
 
-`dotnet publish -c Release -f netcoreapp20 --manifest $env:JITBENCH_ASPNET_MANIFEST` (powershell)
+`dotnet publish -c Release -f netcoreapp2.0 --manifest $env:JITBENCH_ASPNET_MANIFEST` (powershell)
 OR
-`dotnet publish -c Release -f netcoreapp20 --manifest %JITBENCH_ASPNET_MANIFEST%` (cmd)
+`dotnet publish -c Release -f netcoreapp2.0 --manifest %JITBENCH_ASPNET_MANIFEST%` (cmd)
 
 **OSX**
 
-`dotnet publish -c Release -f netcoreapp20 --manifest $JITBENCH_ASPNET_MANIFEST`
+`dotnet publish -c Release -f netcoreapp2.0 --manifest $JITBENCH_ASPNET_MANIFEST`
 
 This will publish the app to `bin\Release\netcoreapp2.0\publish`. You should only see the `MusicStore.dll` and a few other project related assest here if you passed the `--manifest` argument.
 
