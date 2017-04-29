@@ -36,7 +36,7 @@ function New-InstallDirectory(
         New-Item -ItemType Directory -Force -Path $Directory | Out-Null
     }
 
-    $Directory = [System.IO.Path]::GetFullPath($Directory)
+    $Directory = [System.IO.Path]::Combine($pwd, $Directory)
     return $Directory
 }
 
