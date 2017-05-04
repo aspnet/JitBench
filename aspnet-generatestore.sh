@@ -105,7 +105,7 @@ then
 
     echo "dotnet root is $dotnet_root"
 
-    framework_version="$(ls $dotnet_root/shared/Microsoft.NETCore.App -A | tail -1)"
+    framework_version="$(ls -A $dotnet_root/shared/Microsoft.NETCore.App | tail -1)"
     echo "Selected version $framework_version"
 fi
 
@@ -115,7 +115,7 @@ then
 
     dotnet restore ./GetLatestAspNetVersion.proj --packages ./.packages
     
-    aspnet_version="$(ls ./.packages/microsoft.aspnetcore.all -A | tail -1)"
+    aspnet_version="$(ls -A ./.packages/microsoft.aspnetcore.all | tail -1)"
     echo "Selected version $aspnet_version"
 fi
 
