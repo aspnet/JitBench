@@ -10,7 +10,6 @@ then
 fi
 
 echo "Installing latest dotnet"
-./dotnet-install.sh -sharedruntime -installdir .dotnet -channel master -architecture x64
 source ./dotnet-install.sh -installdir .dotnet -channel master -architecture x64
 
 dotnet --info
