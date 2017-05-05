@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <AspNetCoreVersion>$(JITBENCH_ASPNET_VERSION)</AspNetCoreVersion>
-    <RuntimeFrameworkVersion>$(JITBENCH_ASPNET_VERSION)</RuntimeFrameworkVersion>
+    <AspNetVersion>$(JITBENCH_ASPNET_VERSION)</AspNetVersion>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
