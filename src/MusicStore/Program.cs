@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using System.Reflection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 
@@ -85,6 +86,25 @@ namespace MusicStore
             }
 
             Console.WriteLine();
+
+            VerifyLibraryLocation();
+        }
+
+        private static void VerifyLibraryLocation()
+        {
+            var hosting = typeof(WebHostBuilder).GetTypeInfo().Assembly.Location;
+            var musicStore = typeof(Program).GetTypeInfo().Assembly.Location;
+
+            if (Path.GetDirectoryName(hosting) == Path.GetDirectoryName(musicStore))
+            {
+                Console.WriteLine("ASP.NET loaded from bin. This is a bug if you wanted crossgen");
+                Console.WriteLine("ASP.NET loaded from bin. This is a bug if you wanted crossgen");
+                Console.WriteLine("ASP.NET loaded from bin. This is a bug if you wanted crossgen");
+            }
+            else
+            {
+                Console.WriteLine("ASP.NET loaded from store");
+            }
         }
     }
 }

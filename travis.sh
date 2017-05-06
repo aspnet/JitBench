@@ -27,4 +27,12 @@ dotnet publish -c Release -f netcoreapp2.0 --manifest $JITBENCH_ASPNET_MANIFEST
 
 echo "Running MusicStore"
 cd bin/Release/netcoreapp2.0/publish
-dotnet ./MusicStore.dll
+output=$(dotnet ./MusicStore.dll | tee /dev/tty; exit ${PIPESTATUS[0]})
+
+if [[ "$output" != *"ASP.NET loaded from store"* ]]
+then
+    echo "ASP.NET was not loaded from the store. This is a bug."
+    exit 1
+fi
+
+echo "Success"
