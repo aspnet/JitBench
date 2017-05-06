@@ -132,10 +132,8 @@ namespace MusicStore
 
         //This method is invoked when ASPNETCORE_ENVIRONMENT is 'Development' or is not defined
         //The allowed values are Development,Staging and Production
-        public void ConfigureDevelopment(IApplicationBuilder app, ILoggerFactory loggerFactory)
+        public void ConfigureDevelopment(IApplicationBuilder app)
         {
-            loggerFactory.AddConsole(minLevel: LogLevel.Information);
-
             // StatusCode pages to gracefully handle status codes 400-599.
             app.UseStatusCodePagesWithRedirects("~/Home/StatusCodePage");
 
@@ -150,10 +148,8 @@ namespace MusicStore
 
         //This method is invoked when ASPNETCORE_ENVIRONMENT is 'Staging'
         //The allowed values are Development,Staging and Production
-        public void ConfigureStaging(IApplicationBuilder app, ILoggerFactory loggerFactory)
+        public void ConfigureStaging(IApplicationBuilder app)
         {
-            loggerFactory.AddConsole(minLevel: LogLevel.Warning);
-
             // StatusCode pages to gracefully handle status codes 400-599.
             app.UseStatusCodePagesWithRedirects("~/Home/StatusCodePage");
 
@@ -164,10 +160,8 @@ namespace MusicStore
 
         //This method is invoked when ASPNETCORE_ENVIRONMENT is 'Production'
         //The allowed values are Development,Staging and Production
-        public void ConfigureProduction(IApplicationBuilder app, ILoggerFactory loggerFactory)
+        public void ConfigureProduction(IApplicationBuilder app)
         {
-            loggerFactory.AddConsole(minLevel: LogLevel.Warning);
-
             // StatusCode pages to gracefully handle status codes 400-599.
             app.UseStatusCodePagesWithRedirects("~/Home/StatusCodePage");
 
@@ -199,10 +193,6 @@ namespace MusicStore
                     name: "default",
                     template: "{controller}/{action}/{id?}",
                     defaults: new { controller = "Home", action = "Index" });
-
-                routes.MapRoute(
-                    name: "api",
-                    template: "{controller}/{id?}");
             });
 
             //Populates the MusicStore sample data

@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Reflection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace MusicStore
 {
@@ -20,10 +21,15 @@ namespace MusicStore
                 .Build();
 
             var builder = new WebHostBuilder()
+                .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseConfiguration(config)
                 .UseIISIntegration()
-                .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseStartup("MusicStore")
+                .ConfigureLogging(factory =>
+                {
+                    factory.AddConsole();
+                    factory.AddFilter("Console", level => level >= LogLevel.Warning);
+                })
                 .UseKestrel();
 
             var host = builder.Build();
@@ -40,6 +46,7 @@ namespace MusicStore
                 Console.WriteLine("Starting request to http://localhost:5000");
                 var requestTime = Stopwatch.StartNew();
                 var response = client.GetAsync("http://localhost:5000").Result;
+                response.EnsureSuccessStatusCode(); // Crash immediately if something is broken
                 requestTime.Stop();
                 var firstRequestTime = requestTime.ElapsedMilliseconds;
 
@@ -55,7 +62,7 @@ namespace MusicStore
                 var averageRequestTime = 0.0;
 
                 Console.WriteLine("Running 100 requests");
-                for(int i = 1; i <= 100; ++i)
+                for (var i = 1; i <= 100; i++)
                 {
                     requestTime.Restart();
                     response = client.GetAsync("http://localhost:5000").Result;
