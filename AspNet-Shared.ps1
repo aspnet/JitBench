@@ -63,64 +63,27 @@ function Get-FrameworkVersion()
     return $version[-1]
 }
 
-function Get-LatestAspNetVersion([string] $InstallDir)
+function Get-LatestAspNetVersion(
+    [string] $Feed = "https://dotnet.myget.org/F/aspnetcore-ci-dev/api/v3/index.json",
+    [string] $Package = "Microsoft.AspNetCore.All")
 {
     Set-StrictMode -Version Latest
     $ErrorActionPreference="Stop"
     $ProgressPreference="SilentlyContinue"
-
-    if (-not $InstallDir)
-    {
-        throw "InstallDir is required. Use <auto> to generate a default."
-    }
-
-    $InstallDir = New-InstallDirectory -Directory $InstallDir -Default ".packages" -Create
-
-    $project = "$(Split-Path $script:MyInvocation.MyCommand.Path -Parent)\GetLatestAspNetVersion.proj"
 
     Write-Host -ForegroundColor Green "Autodetecting ASP.NET version"
-    & "dotnet" "restore", "$project", "--packages", "$InstallDir" | Write-Host
-    if ($LastExitCode -ne 0)
+
+    $index = Invoke-WebRequest -Uri $Feed | ConvertFrom-Json
+    $root = $index| ForEach-Object { $_.Resources } | Where-Object { $_.'@type' -eq "PackageBaseAddress/3.0.0" } | ForEach-Object { $_.'@id' }
+
+    $versions = @(Invoke-WebRequest -Uri ($root + $Package.ToLowerInvariant() + "/index.json") | ConvertFrom-Json | ForEach-Object { $_.versions } | Sort-Object)
+    if ($versions.Count -eq 0)
     {
-        throw "dotnet restore failed."
+        throw "No versions of $Package found."
     }
 
-    $version = Get-LatestPackageVersion -PackagesRoot $InstallDir -Package "microsoft.aspnetcore.all"
-    return $version
-}
-
-function Get-LatestPackageVersion(
-    [string] $PackagesRoot,
-    [string] $Package)
-{
-    Set-StrictMode -Version Latest
-    $ErrorActionPreference="Stop"
-    $ProgressPreference="SilentlyContinue"
-
-    if (-not $PackagesRoot)
-    {
-        throw "PackagesRoot is required."
-    }
-
-    if (-not $Package)
-    {
-        throw "Package is required."
-    }
-
-    $package_dir = Join-Path $PackagesRoot $Package
-    if (-not (Test-Path $package_dir))
-    {
-        throw "$Package not found."
-    }
-
-    $versions = @(Get-ChildItem $package_dir | Sort-Object Name)
-
-    foreach ($version in $versions)
-    {
-        Write-Host -ForegroundColor Green "Found version: $version"
-    }
-    
     Write-Host -ForegroundColor Green "Choosing version: $($versions[-1])"
+    
     return $versions[-1]
 }
 
