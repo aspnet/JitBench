@@ -6,6 +6,7 @@ cd $root
 runtime="ubuntu.14.04-x64"
 if [ "$TRAVIS_OS_NAME" = "osx" ]
 then
+    ulimit -n 2048
     runtime="osx.10.12-x64"
 fi
 
