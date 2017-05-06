@@ -12,10 +12,6 @@ namespace MusicStore
     {
         public static void Main(string[] args)
         {
-            // TODO: This is a workaround for https://github.com/dotnet/corefx/issues/17166
-            // SQLClient does not connect to LocalDB without it
-            AppContext.SetSwitch("System.Data.SqlClient.UseLegacyNetworkingOnWindows", true);
-            
             var totalTime = Stopwatch.StartNew();
 
             var config = new ConfigurationBuilder()
