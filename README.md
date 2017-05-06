@@ -101,7 +101,9 @@ Build/publish MusicStore
 **Windows**
 
 `dotnet publish -c Release -f netcoreapp2.0 --manifest $env:JITBENCH_ASPNET_MANIFEST` (powershell)
+
 OR
+
 `dotnet publish -c Release -f netcoreapp2.0 --manifest %JITBENCH_ASPNET_MANIFEST%` (cmd)
 
 **OSX**
@@ -134,6 +136,24 @@ Steadystate min response time: 4ms
 Steadystate max response time: 15ms
 Steadystate average response time: 4ms
 ```
+
+## Other things you can do
+
+### View Compilation
+
+MVC can pre-compile the view files on publish. 
+
+To do this change up your *step 5* publish command
+
+`dotnet publish -c Release -f netcoreapp2.0 --manifest $env:JITBENCH_ASPNET_MANIFEST /p:MvcRazorCompileOnPublish=true` (powershell)
+
+After doing a publish this way you shouldn't have a `Views` folder in the publish output. 
+
+----
+
+This is interesting to do because view compilation at runtime eats up about 50% our startup time. So by excluding it we measure a much different subset of the application. 
+
+Compile on publish is the default for publishing for new applications. We expect most users to use runtime compilation for local inner-loop and publish-time compilation for production. 
 
 ## FAQ
 

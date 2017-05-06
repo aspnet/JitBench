@@ -16,6 +16,11 @@
     <AspNetVersion>$(JITBENCH_ASPNET_VERSION)</AspNetVersion>
     <RuntimeFrameworkVersion>$(JITBENCH_FRAMEWORK_VERSION)</RuntimeFrameworkVersion>
   </PropertyGroup>
+
+  <!-- View Compilation on publish is off by default -->
+  <PropertyGroup Condition=" '$(MvcRazorCompileOnPublish)' == '' ">
+    <MvcRazorCompileOnPublish>false</MvcRazorCompileOnPublish>
+  </PropertyGroup>
   
   <PropertyGroup Condition=" '$(AspNetVersion)' == '' ">
     <AspNetVersion>2.0.0-*</AspNetVersion>
@@ -25,7 +30,6 @@
   </PropertyGroup>
   
   <ItemGroup>
-
     <!-- This is a workaround for https://github.com/aspnet/JitBench/issues/34 -->
     <PackageReference Include="Microsoft.Win32.Registry">
       <Version>4.4.0-*</Version>
@@ -62,6 +66,9 @@
       <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Mvc">
+      <Version>$(AspNetVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.ViewCompilation">
       <Version>$(AspNetVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.TagHelpers">

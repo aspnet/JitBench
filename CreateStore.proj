@@ -35,6 +35,9 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc">
       <Version>$(AspNetVersion)</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.ViewCompilation">
+      <Version>$(AspNetVersion)</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.TagHelpers">
       <Version>$(AspNetVersion)</Version>
     </PackageReference>
