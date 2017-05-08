@@ -5,6 +5,7 @@ $ProgressPreference="SilentlyContinue"
 Set-Location "$(Split-Path $script:MyInvocation.MyCommand.Path -Parent)"
 
 Write-Host -ForegroundColor Green "Installing latest dotnet"
+.\Dotnet-Install.ps1 -SharedRuntime -InstallDir .dotnet -Channel master -Architecture x64
 .\Dotnet-Install.ps1 -InstallDir .dotnet -Channel master -Architecture x64
 
 Write-Host -ForegroundColor Green "Creating package store"

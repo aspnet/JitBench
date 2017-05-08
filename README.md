@@ -27,18 +27,19 @@ Get the newest dotnet Shared Runtime as 'repo local'
 
 **Windows**
 
-~~`.\Dotnet-Install.ps1 -SharedRuntime -InstallDir .dotnet -Channel master -Architecture x64`~~
-
-This is currently not working, tracked [here](https://github.com/dotnet/cli/issues/6517). Just skip the shared framework install for now.
-
+`.\Dotnet-Install.ps1 -SharedRuntime -InstallDir .dotnet -Channel master -Architecture x64`
 
 `.\Dotnet-Install.ps1 -InstallDir .dotnet -Channel master -Architecture x64`
 
-**OSX** / **Linux**
+**OSX**
 
-~~`./dotnet-install.sh -sharedruntime -installdir .dotnet -channel master -architecture x64`~~
+`./dotnet-install.sh -sharedruntime -runtimeid osx.10.12-x64 -installdir .dotnet -channel master -architecture x64` 
 
-This is currently not working, tracked [here](https://github.com/dotnet/cli/issues/6517). Just skip the shared framework install for now.
+`source ./dotnet-install.sh -installdir .dotnet -channel master -architecture x64`
+
+**Linux**
+
+`./dotnet-install.sh -sharedruntime -runtimeid linux-x64 -installdir .dotnet -channel master -architecture x64` 
 
 `source ./dotnet-install.sh -installdir .dotnet -channel master -architecture x64`
 

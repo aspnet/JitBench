@@ -4,13 +4,16 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd $root
 
 runtime="ubuntu.14.04-x64"
+shared_framework_runtime="linux-x64"
 if [ "$TRAVIS_OS_NAME" = "osx" ]
 then
     ulimit -n 2048
     runtime="osx.10.12-x64"
+    shared_framework_runtime="osx.10.12-x64"
 fi
 
 echo "Installing latest dotnet"
+./dotnet-install.sh -sharedruntime -runtimeid "$shared_framework_runtime" -installdir .dotnet -channel master -architecture x64
 source ./dotnet-install.sh -installdir .dotnet -channel master -architecture x64
 
 dotnet --info
