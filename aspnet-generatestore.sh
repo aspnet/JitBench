@@ -3,7 +3,7 @@
 set -euo pipefail
 
 install_dir="<auto>"
-aspnet_version="<auto>"
+aspnet_version="2.0.0-preview1-final"
 framework="netcoreapp2.0"
 framework_version="<auto>"
 architecture="x64"

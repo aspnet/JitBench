@@ -27,7 +27,7 @@ namespace MusicStore.Models
             base.OnConfiguring(optionsBuilder);
 
             // Suppresses a warning about DbContext.Genres.Select(g => g.Name).Take(9).ToListAsync()
-            optionsBuilder.ConfigureWarnings(w => w.Ignore(CoreEventId.QueryModelCompiling));
+            optionsBuilder.ConfigureWarnings(w => w.Ignore(CoreEventId.CompilingQueryModel));
         }
 
         public DbSet<Album> Albums { get; set; }

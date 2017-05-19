@@ -77,18 +77,6 @@ This step will also set some environment variables that affect the behavior of t
 
 This step assumes the latest version of ASP.NET and the shared framework. Use the `-AspNetVersion` and `-FrameworkVersion` parameters to override these.
 
-### Step 3b: (Alternative)
-
-Install the ASP.NET binaries
-
-`.\AspNet-Install.ps1 -InstallDir .aspnet -Architecture x64`
-
-This will retrieve a zip of pre-optimized ASP.NET binaries and extract them for use with the MusicStore application. This may take a few minutes.
-
-This step will also set some environment variables that affect the behavior of the subsequent commands. You'll see in the console output some of the information about the environment variables that were set.
-
-This step assumes the latest version of ASP.NET and the shared framework. Use the `-AspNetVersion` and `-FrameworkVersion` parameters to override these.
-
 ### Step 4:
 
 Restore dependency packages
