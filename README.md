@@ -5,11 +5,16 @@ A repository for aspnet workloads suitable for testing the JIT.
 
 Right now there is only one workload app here, at `src/MusicStore`
 
-## Important
+## Branches
 
-This branch is for testing of the **latest builds** of ASP.NET Core and .NET Core. This is somewhat unstable and may break from time to time. Use one of the other branches for a stable experience.
+This repo uses branches that target various releases for comparison purposes. Please make sure to follow the instructions in the readme for that particular branch that you are using. `dev` in particular is special.
 
-The instructions here assume that you need to test latest builds and may need to substitute private builds of CoreCLR to do so. Everything here is hardcoded to win7-x64.
+| Branch             | ASP.NET version  | Status                                                                                                                        |
+|--------------------|------------------|-------------------------------------------------------------------------------------------------------------------------------|
+| dev                | *latest*         | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=dev)](https://travis-ci.org/aspnet/JitBench)                |
+| master             | `1.0.1`          | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=master)](https://travis-ci.org/aspnet/JitBench)             |
+| rel/1.1.0          | `1.1.0`          | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=rel/1.1.0)](https://travis-ci.org/aspnet/JitBench)          |
+| rel/1.0.1          | `1.0.1`          | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=rel/1.0.1)](https://travis-ci.org/aspnet/JitBench)          |
 
 ## Instructions for JIT testing:
 
