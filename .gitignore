@@ -1,5 +1,9 @@
 [Oo]bj/
 [Bb]in/
+.dotnet/
+.aspnet/
+.store/
+.packages/
 .vs/
 *.xap
 *.user
@@ -40,3 +44,4 @@ project.lock.json
 .build/
 .testpublish/
 launchSettings.json
+global.json
