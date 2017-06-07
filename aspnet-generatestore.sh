@@ -124,7 +124,7 @@ export JITBENCH_ASPNET_VERSION="$aspnet_version"
 export JITBENCH_FRAMEWORK_VERSION="$framework_version"
 
 echo "Running dotnet store"
-dotnet store --manifest "./CreateStore.proj" -f "$framework" -r "$runtime_id" --framework-version "$framework_version" -w "$work_dir" -o "$install_dir"
+dotnet store --manifest "./CreateStore.proj" -f "$framework" -r "$runtime_id" --framework-version "$framework_version" -w "$work_dir" -o "$install_dir" --skip-symbols
 
 manifest="$install_dir/$architecture/$framework/artifact.xml"
 
