@@ -35,7 +35,7 @@ $env:JITBENCH_ASPNET_VERSION = $AspNetVersion
 $env:JITBENCH_FRAMEWORK_VERSION = $FrameworkVersion
 
 Write-Host -ForegroundColor Green "Running dotnet store"
-& "dotnet" "store", "--manifest", ".\CreateStore.proj", "-f", "$Framework", "-r" "$Runtime" "--framework-version", "$FrameworkVersion", "-w", $temp, "-o", "$InstallDir"
+& "dotnet" "store", "--manifest", ".\CreateStore.proj", "-f", "$Framework", "-r" "$Runtime" "--framework-version", "$FrameworkVersion", "-w", $temp, "-o", "$InstallDir", "--skip-symbols"
 if ($LastExitCode -ne 0)
 {
     throw "dotnet store failed."
