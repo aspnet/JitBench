@@ -1,4 +1,6 @@
-﻿namespace MusicStore.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace MusicStore.Models
 {
     public class OrderDetail
     {
@@ -14,6 +16,7 @@
 
         public virtual Album Album { get; set; }
 
+        [Column(TypeName = "decimal(18,2)")]
         public virtual Order Order { get; set; }
     }
 }
