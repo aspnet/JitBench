@@ -12,7 +12,8 @@ This repo uses branches that target various releases for comparison purposes. Pl
 | Branch             | ASP.NET version  | Status                                                                                                                        |
 |--------------------|------------------|-------------------------------------------------------------------------------------------------------------------------------|
 | dev                | *latest*         | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=dev)](https://travis-ci.org/aspnet/JitBench)                |
-| master             | 2.0.0-preview2   | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=master)](https://travis-ci.org/aspnet/JitBench)             |
+| master             | 2.0.0            | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=master)](https://travis-ci.org/aspnet/JitBench)             |
+| rel/2.0.0          | 2.0.0            | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=rel/2.0.0)                                                  |
 | rel/2.0.0-preview2 | 2.0.0-preview2   | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=rel/2.0.0-preview2)](https://travis-ci.org/aspnet/JitBench) |
 | rel/2.0.0-preview1 | 2.0.0-preview1   | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=rel/2.0.0-preview1)](https://travis-ci.org/aspnet/JitBench) |
 | rel/1.1.0          | 1.1.0            | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=rel/1.1.0)](https://travis-ci.org/aspnet/JitBench)          |
@@ -95,23 +96,23 @@ Build/publish MusicStore
 
 **Windows**
 
-`dotnet publish -c Release -f netcoreapp2.0 --manifest $env:JITBENCH_ASPNET_MANIFEST` (powershell)
+`dotnet publish -c Release -f netcoreapp2.1 --manifest $env:JITBENCH_ASPNET_MANIFEST` (powershell)
 
 OR
 
-`dotnet publish -c Release -f netcoreapp2.0 --manifest %JITBENCH_ASPNET_MANIFEST%` (cmd)
+`dotnet publish -c Release -f netcoreapp2.1 --manifest %JITBENCH_ASPNET_MANIFEST%` (cmd)
 
 **OSX**
 
-`dotnet publish -c Release -f netcoreapp2.0 --manifest $JITBENCH_ASPNET_MANIFEST`
+`dotnet publish -c Release -f netcoreapp2.1 --manifest $JITBENCH_ASPNET_MANIFEST`
 
-This will publish the app to `bin\Release\netcoreapp2.0\publish`. You should only see the `MusicStore.dll` and a few other project related assest here if you passed the `--manifest` argument.
+This will publish the app to `bin\Release\netcoreapp2.1\publish`. You should only see the `MusicStore.dll` and a few other project related assest here if you passed the `--manifest` argument.
 
 ### Step 6:
 
 Run the app
 
-`cd bin\Release\netcoreapp2.0\publish`
+`cd bin\Release\netcoreapp2.1\publish`
 
 `dotnet MusicStore.dll`
 
@@ -140,7 +141,7 @@ MVC can pre-compile the view files on publish.
 
 To do this change up your *step 5* publish command
 
-`dotnet publish -c Release -f netcoreapp2.0 --manifest $env:JITBENCH_ASPNET_MANIFEST /p:MvcRazorCompileOnPublish=true` (powershell)
+`dotnet publish -c Release -f netcoreapp2.1 --manifest $env:JITBENCH_ASPNET_MANIFEST /p:MvcRazorCompileOnPublish=true` (powershell)
 
 After doing a publish this way you shouldn't have a `Views` folder in the publish output. 
 
@@ -234,7 +235,7 @@ This will restore package and runtime dependencies. In general we already have t
 
 This step will use the environment variables `JITBENCH_ASPNET_VERSION` and `JITBENCH_FRAMEWORK_VERSION` to pin the version of the ASP.NET libraries and shared framework based on Step 3.
 
-### Step 5: `dotnet publish -c Release -f netcoreapp20 --manifest $env:JITBENCH_ASPNET_MANIFEST`
+### Step 5: `dotnet publish -c Release -f netcoreapp2.1 --manifest $env:JITBENCH_ASPNET_MANIFEST`
 
 This will build and publish the application in the `Release` configuration and targeting `netcoreapp20` as the target framework. `netcoreapp20` is what we refer to as the *shared framework*.
 

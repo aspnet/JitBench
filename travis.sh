@@ -26,10 +26,10 @@ cd src/MusicStore
 dotnet restore
 
 echo "Publishing MusicStore"
-dotnet publish -c Release -f netcoreapp2.0 --manifest $JITBENCH_ASPNET_MANIFEST
+dotnet publish -c Release -f netcoreapp2.1 --manifest $JITBENCH_ASPNET_MANIFEST
 
 echo "Running MusicStore"
-cd bin/Release/netcoreapp2.0/publish
+cd bin/Release/netcoreapp2.1/publish
 output=$(dotnet ./MusicStore.dll | tee /dev/tty; exit ${PIPESTATUS[0]})
 
 if [[ "$output" != *"ASP.NET loaded from store"* ]]
