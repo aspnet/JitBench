@@ -11,12 +11,13 @@ using Microsoft.Extensions.Logging;
 
 namespace MusicStore
 {
+    [EventSource(Name ="Microsoft-JitBench-Scenario")]
     sealed class JitBenchEventSource : EventSource
     {
         public void Startup() { WriteEvent(1); }
         public void FirstRequest() { WriteEvent(2); }
-        public void BeginRequests(Int32 n) { WriteEvent(3, n);  }
-        public void EndRequests(Int32 n) { WriteEvent(4, n); }
+        public void BeginRequests(int iteration, int count) { WriteEvent(3, iteration, count);  }
+        public void EndRequests(int iteration, int count) { WriteEvent(4, iteration, count); }
 
         public static JitBenchEventSource Log = new JitBenchEventSource();
     }
@@ -70,51 +71,56 @@ namespace MusicStore
                 Console.WriteLine("Cold start time (server start + first request time): {0}ms", serverStartupTime + firstRequestTime);
                 Console.WriteLine();
                 Console.WriteLine();
-                
-                var minRequestTime = long.MaxValue;
-                var maxRequestTime = long.MinValue;
-                int N = 1001;
-                long[] responseTimes = new long[N];
 
-                Console.WriteLine($"Running {N} requests");
-                JitBenchEventSource.Log.BeginRequests(N);
-                for (var i = 0; i < N; i++)
+                int outerN = 5;
+
+                for (int outer = 0; outer < outerN; outer++)
                 {
-                    requestTime.Restart();
-                    response = client.GetAsync("http://localhost:5000").Result;
-                    requestTime.Stop();
+                    var minRequestTime = long.MaxValue;
+                    var maxRequestTime = long.MinValue;
+                    int N = 1001;
+                    long[] responseTimes = new long[N];
 
-                    long interval = highRes ? requestTime.ElapsedTicks : requestTime.ElapsedMilliseconds;
-                    responseTimes[i] = interval;
-
-                    if (interval < minRequestTime)
+                    Console.WriteLine($"Batch {outer}: running {N} requests");
+                    JitBenchEventSource.Log.BeginRequests(outer, N);
+                    for (int inner = 0; inner < N; inner++)
                     {
-                        minRequestTime = interval;
-                    }
-                    if (interval > maxRequestTime)
-                    {
-                        maxRequestTime = interval;
-                    }
-                }
-                JitBenchEventSource.Log.EndRequests(N);
+                        requestTime.Restart();
+                        response = client.GetAsync("http://localhost:5000").Result;
+                        requestTime.Stop();
 
-                if (highRes)
-                {
-                    double averageResponse = 1000 * ((double)responseTimes.Sum() / N / Stopwatch.Frequency);
-                    double medianResponse = 1000 * ((double)responseTimes.OrderBy(t => t).ElementAt(N / 2) / Stopwatch.Frequency);
-                    Console.WriteLine("Steadystate min response time: {0:F2}ms", (1000 * minRequestTime) / Stopwatch.Frequency);
-                    Console.WriteLine("Steadystate max response time: {0:F2}ms", (1000 * maxRequestTime) / Stopwatch.Frequency);
-                    Console.WriteLine("Steadystate average response time: {0:F2}ms", averageResponse);
-                    Console.WriteLine("Steadystate median response time: {0:F2}ms",  medianResponse);
-                }
-                else
-                {
-                    long averageResponse = responseTimes.Sum() / N;
-                    long medianResponse = responseTimes.OrderBy(t => t).ElementAt(N / 2);
-                    Console.WriteLine("Steadystate min response time: {0}ms", minRequestTime);
-                    Console.WriteLine("Steadystate max response time: {0}ms", maxRequestTime);
-                    Console.WriteLine("Steadystate average response time: {0}ms", (int)averageResponse);
-                    Console.WriteLine("Steadystate median response time: {0}ms", (int)medianResponse);
+                        long interval = highRes ? requestTime.ElapsedTicks : requestTime.ElapsedMilliseconds;
+                        responseTimes[inner] = interval;
+
+                        if (interval < minRequestTime)
+                        {
+                            minRequestTime = interval;
+                        }
+                        if (interval > maxRequestTime)
+                        {
+                            maxRequestTime = interval;
+                        }
+                    }
+                    JitBenchEventSource.Log.EndRequests(outer, N);
+
+                    if (highRes)
+                    {
+                        double averageResponse = 1000 * ((double)responseTimes.Sum() / N / Stopwatch.Frequency);
+                        double medianResponse = 1000 * ((double)responseTimes.OrderBy(t => t).ElementAt(N / 2) / Stopwatch.Frequency);
+                        Console.WriteLine("Steadystate min response time: {0:F2}ms", (1000 * minRequestTime) / Stopwatch.Frequency);
+                        Console.WriteLine("Steadystate max response time: {0:F2}ms", (1000 * maxRequestTime) / Stopwatch.Frequency);
+                        Console.WriteLine("Steadystate average response time: {0:F2}ms", averageResponse);
+                        Console.WriteLine("Steadystate median response time: {0:F2}ms", medianResponse);
+                    }
+                    else
+                    {
+                        long averageResponse = responseTimes.Sum() / N;
+                        long medianResponse = responseTimes.OrderBy(t => t).ElementAt(N / 2);
+                        Console.WriteLine("Steadystate min response time: {0}ms", minRequestTime);
+                        Console.WriteLine("Steadystate max response time: {0}ms", maxRequestTime);
+                        Console.WriteLine("Steadystate average response time: {0}ms", (int)averageResponse);
+                        Console.WriteLine("Steadystate median response time: {0}ms", (int)medianResponse);
+                    }
                 }
             }
 
