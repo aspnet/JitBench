@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using Microsoft.AspNetCore.Hosting;
@@ -9,11 +11,21 @@ using Microsoft.Extensions.Logging;
 
 namespace MusicStore
 {
+    sealed class JitBenchEventSource : EventSource
+    {
+        public void Startup() { WriteEvent(1); }
+        public void FirstRequest() { WriteEvent(2); }
+        public void BeginRequests(Int32 n) { WriteEvent(3, n);  }
+        public void EndRequests(Int32 n) { WriteEvent(4, n); }
+
+        public static JitBenchEventSource Log = new JitBenchEventSource();
+    }
     public static class Program
     {
         public static void Main(string[] args)
         {
             var totalTime = Stopwatch.StartNew();
+            var highRes = Stopwatch.IsHighResolution;
 
             var config = new ConfigurationBuilder()
                 .AddCommandLine(args)
@@ -37,6 +49,7 @@ namespace MusicStore
             host.Start();
 
             totalTime.Stop();
+            JitBenchEventSource.Log.Startup();
             var serverStartupTime = totalTime.ElapsedMilliseconds;
             Console.WriteLine("Server started in {0}ms", serverStartupTime);
             Console.WriteLine();
@@ -48,6 +61,7 @@ namespace MusicStore
                 var response = client.GetAsync("http://localhost:5000").Result;
                 response.EnsureSuccessStatusCode(); // Crash immediately if something is broken
                 requestTime.Stop();
+                JitBenchEventSource.Log.FirstRequest();
                 var firstRequestTime = requestTime.ElapsedMilliseconds;
 
                 Console.WriteLine("Response: {0}", response.StatusCode);
@@ -59,33 +73,49 @@ namespace MusicStore
                 
                 var minRequestTime = long.MaxValue;
                 var maxRequestTime = long.MinValue;
-                var averageRequestTime = 0.0;
+                int N = 1001;
+                long[] responseTimes = new long[N];
 
-                Console.WriteLine("Running 100 requests");
-                for (var i = 1; i <= 100; i++)
+                Console.WriteLine($"Running {N} requests");
+                JitBenchEventSource.Log.BeginRequests(N);
+                for (var i = 0; i < N; i++)
                 {
                     requestTime.Restart();
                     response = client.GetAsync("http://localhost:5000").Result;
                     requestTime.Stop();
 
-                    var requestTimeElapsed = requestTime.ElapsedMilliseconds;
-                    if (requestTimeElapsed < minRequestTime)
-                    {
-                        minRequestTime = requestTimeElapsed;
-                    }
+                    long interval = highRes ? requestTime.ElapsedTicks : requestTime.ElapsedMilliseconds;
+                    responseTimes[i] = interval;
 
-                    if (requestTimeElapsed > maxRequestTime)
+                    if (interval < minRequestTime)
                     {
-                        maxRequestTime = requestTimeElapsed;
+                        minRequestTime = interval;
                     }
-
-                    // Rolling average of request times
-                    averageRequestTime = (averageRequestTime * ((i - 1.0) / i)) + (requestTimeElapsed * (1.0 / i));
+                    if (interval > maxRequestTime)
+                    {
+                        maxRequestTime = interval;
+                    }
                 }
+                JitBenchEventSource.Log.EndRequests(N);
 
-                Console.WriteLine("Steadystate min response time: {0}ms", minRequestTime);
-                Console.WriteLine("Steadystate max response time: {0}ms", maxRequestTime);
-                Console.WriteLine("Steadystate average response time: {0}ms", (int)averageRequestTime);
+                if (highRes)
+                {
+                    double averageResponse = 1000 * ((double)responseTimes.Sum() / N / Stopwatch.Frequency);
+                    double medianResponse = 1000 * ((double)responseTimes.OrderBy(t => t).ElementAt(N / 2) / Stopwatch.Frequency);
+                    Console.WriteLine("Steadystate min response time: {0:F2}ms", (1000 * minRequestTime) / Stopwatch.Frequency);
+                    Console.WriteLine("Steadystate max response time: {0:F2}ms", (1000 * maxRequestTime) / Stopwatch.Frequency);
+                    Console.WriteLine("Steadystate average response time: {0:F2}ms", averageResponse);
+                    Console.WriteLine("Steadystate median response time: {0:F2}ms",  medianResponse);
+                }
+                else
+                {
+                    long averageResponse = responseTimes.Sum() / N;
+                    long medianResponse = responseTimes.OrderBy(t => t).ElementAt(N / 2);
+                    Console.WriteLine("Steadystate min response time: {0}ms", minRequestTime);
+                    Console.WriteLine("Steadystate max response time: {0}ms", maxRequestTime);
+                    Console.WriteLine("Steadystate average response time: {0}ms", (int)averageResponse);
+                    Console.WriteLine("Steadystate median response time: {0}ms", (int)medianResponse);
+                }
             }
 
             Console.WriteLine();
