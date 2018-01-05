@@ -33,8 +33,6 @@
     <PackageReference Include="Microsoft.AspNetCore.All">
       <Version>$(AspNetVersion)</Version>
     </PackageReference>
-    <!-- Temporary workaround for https://github.com/dotnet/corefx/issues/23988 -->
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.4.0" ExcludeAssets="all" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
