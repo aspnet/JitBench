@@ -13,11 +13,7 @@ This repo uses branches that target various releases for comparison purposes. Pl
 |--------------------|------------------|-------------------------------------------------------------------------------------------------------------------------------|
 | dev                | *latest*         | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=dev)](https://travis-ci.org/aspnet/JitBench)                |
 | master             | 2.0.0            | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=master)](https://travis-ci.org/aspnet/JitBench)             |
-| rel/2.0.0          | 2.0.0            | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=rel/2.0.0)](https://travis-ci.org/aspnet/JitBench)          |
-| rel/2.0.0-preview2 | 2.0.0-preview2   | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=rel/2.0.0-preview2)](https://travis-ci.org/aspnet/JitBench) |
-| rel/2.0.0-preview1 | 2.0.0-preview1   | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=rel/2.0.0-preview1)](https://travis-ci.org/aspnet/JitBench) |
-| rel/1.1.0          | 1.1.0            | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=rel/1.1.0)](https://travis-ci.org/aspnet/JitBench)          |
-| rel/1.0.1          | 1.0.1            | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=rel/1.0.1)](https://travis-ci.org/aspnet/JitBench)          |
+| rel/2.0.0          | 2.0.0            | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=rel/2.0.0)]      |
 
 ## Instructions for JIT testing:
 
