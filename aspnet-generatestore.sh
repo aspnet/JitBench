@@ -4,7 +4,7 @@ set -euo pipefail
 
 install_dir="<auto>"
 aspnet_version="2.0.0"
-framework="netcoreapp2.1"
+framework="netcoreapp2.0"
 framework_version="<auto>"
 architecture="x64"
 runtime_id="" # must be provided
@@ -124,7 +124,7 @@ export JITBENCH_ASPNET_VERSION="$aspnet_version"
 export JITBENCH_FRAMEWORK_VERSION="$framework_version"
 
 echo "Running dotnet store"
-dotnet store --manifest "./CreateStore.proj" -f "$framework" -r "$runtime_id" --framework-version "$framework_version" -w "$work_dir" -o "$install_dir" --skip-symbols
+dotnet store --manifest "./CreateStore/CreateStore.proj" -f "$framework" -r "$runtime_id" --framework-version "$framework_version" -w "$work_dir" -o "$install_dir" --skip-symbols
 
 manifest="$install_dir/$architecture/$framework/artifact.xml"
 
