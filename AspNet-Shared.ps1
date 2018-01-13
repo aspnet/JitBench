@@ -1,5 +1,52 @@
 # Shared functions used by various scripts
 
+function Calculate-Versions(
+    [string] $AspNetVersion = "<auto>",
+    [string] $FrameworkVersion = "<auto>",
+    [string] $TargetFrameworkMoniker = "<auto>",
+    [string] $FrameworkSdkVersion = "<auto>")
+{
+    if($AspNetVersion -eq "<auto>")
+    {
+        $AspNetVersion = "2.0.0"
+    }
+
+    if($FrameworkVersion -eq "<auto>")
+    {
+        $FrameworkVersion = "2.0.0"
+    }
+
+    if($TargetFrameworkMoniker -eq "<auto>")
+    {
+        $TargetFrameworkMoniker = "netcoreapp" + $FrameworkVersion.Substring(0,3)
+    }
+
+    if($FrameworkSdkVersion -eq "<auto>")
+    {
+        if($TargetFrameworkMoniker -eq "netcoreapp2.0")
+        {
+            $FrameworkSdkVersion = "2.0.0"
+        }
+        ElseIf($TargetFrameworkMoniker -eq "netcoreapp2.1")
+        {
+            #This is an arbitrarily selected last known good SDK that works for netcoreapp2.1
+            $FrameworkSdkVersion = "2.2.0-preview1-007558"
+        }
+        Else
+        {
+            $errorMsg = "No default SDK version has been designated that supports TFM $TargetFrameworkMoniker"
+            throw $errorMsg
+        }
+    }
+
+    $ret = @{}
+    $ret.Add("JITBENCH_ASPNET_VERSION",$AspNetVersion)
+    $ret.Add("JITBENCH_FRAMEWORK_SDK_VERSION", $FrameworkSdkVersion)
+    $ret.Add("JITBENCH_TARGET_FRAMEWORK_MONIKER", $TargetFrameworkMoniker)
+    $ret.Add("JITBENCH_FRAMEWORK_VERSION", $FrameworkVersion)
+    return $ret
+}
+
 # Creates a directory if it doesn't exist, returns the fully qualified path
 function New-InstallDirectory(
     [string] $Directory,

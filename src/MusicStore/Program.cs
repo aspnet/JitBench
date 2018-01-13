@@ -28,7 +28,7 @@ namespace MusicStore
                 .ConfigureLogging(factory =>
                 {
                     factory.AddConsole();
-                    factory.AddFilter((category, level) => level >= LogLevel.Warning);
+                    factory.AddFilter((provider,category, level) => level >= LogLevel.Warning);
                 })
                 .UseKestrel();
 

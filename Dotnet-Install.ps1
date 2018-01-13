@@ -38,6 +38,9 @@
 .PARAMETER NoPath
     By default this script will set environment variable PATH for the current process to the binaries folder inside installation folder.
     If set it will display binaries location but not set any environment variable.
+.PARAMETER NoDisableMultiLevelLookup
+    By default this script will set environment variable DOTNET_MULTILEVEL_LOOKUP = 0 for the current process
+    If set the environment variable will not be modified.
 .PARAMETER Verbose
     Displays diagnostics information.
 .PARAMETER AzureFeed
@@ -63,6 +66,7 @@ param(
    [switch]$DebugSymbols, # TODO: Switch does not work yet. Symbols zip is not being uploaded yet.
    [switch]$DryRun,
    [switch]$NoPath,
+   [switch]$NoDisableMultiLevelLookup,
    [string]$AzureFeed="https://dotnetcli.azureedge.net/dotnet",
    [string]$UncachedFeed="https://dotnetcli.blob.core.windows.net/dotnet",
    [string]$ProxyAddress,
@@ -429,6 +433,16 @@ function Prepend-Sdk-InstallRoot-To-Path([string]$InstallRoot, [string]$BinFolde
     }
 }
 
+function Disable-MultiLevelLookup() {
+    if (-Not $NoDisableMultiLevelLookup) {
+        Say "Adding to current process DOTNET_MULTILEVEL_LOOKUP: `"0`". Note: This change will not be visible if PowerShell was run as a child process."
+        $env:DOTNET_MULTILEVEL_LOOKUP = "0"
+    }
+    else {
+        Say "MultiLevelLookup has NOT been disabled. The dotnet host may resolve dependencies from the machine global dotnet install location"
+    }
+}
+
 $CLIArchitecture = Get-CLIArchitecture-From-Architecture $Architecture
 $SpecificVersion = Get-Specific-Version-From-Version -AzureFeed $AzureFeed -Channel $Channel -Version $Version
 $DownloadLink = Get-Download-Link -AzureFeed $AzureFeed -Channel $Channel -SpecificVersion $SpecificVersion -CLIArchitecture $CLIArchitecture
@@ -450,6 +464,7 @@ Say-Verbose ".NET SDK installed? $IsSdkInstalled"
 if ($IsSdkInstalled) {
     Say ".NET SDK version $SpecificVersion is already installed."
     Prepend-Sdk-InstallRoot-To-Path -InstallRoot $InstallRoot -BinFolderRelativePath $BinFolderRelativePath
+    Disable-MultiLevelLookup
     exit 0
 }
 
@@ -481,6 +496,7 @@ Extract-Dotnet-Package -ZipPath $ZipPath -OutPath $InstallRoot
 Remove-Item $ZipPath
 
 Prepend-Sdk-InstallRoot-To-Path -InstallRoot $InstallRoot -BinFolderRelativePath $BinFolderRelativePath
+Disable-MultiLevelLookup
 
 Say "Installation finished"
 exit 0

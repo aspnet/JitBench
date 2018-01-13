@@ -1,137 +1,104 @@
 
 # JitBench
 
+![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=rel/2.0.0)             
+
 A repository for aspnet workloads suitable for testing the JIT.
 
 Right now there is only one workload app here, at `src/MusicStore`
 
-## Branches
+## Example benchmark usage with powershell
 
-This repo uses branches that target various releases for comparison purposes. Please make sure to follow the instructions in the readme for that particular branch that you are using. `dev` in particular is special.
+### First get the repo
 
-| Branch             | ASP.NET version  | Status                                                                                                                        |
-|--------------------|------------------|-------------------------------------------------------------------------------------------------------------------------------|
-| dev                | *latest*         | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=dev)](https://travis-ci.org/aspnet/JitBench)                |
-| master             | 2.0.0            | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=master)](https://travis-ci.org/aspnet/JitBench)             |
-| rel/2.0.0          | 2.0.0            | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=rel/2.0.0)                                                  |
-| rel/2.0.0-preview2 | 2.0.0-preview2   | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=rel/2.0.0-preview2)](https://travis-ci.org/aspnet/JitBench) |
-| rel/2.0.0-preview1 | 2.0.0-preview1   | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=rel/2.0.0-preview1)](https://travis-ci.org/aspnet/JitBench) |
-| rel/1.1.0          | 1.1.0            | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=rel/1.1.0)](https://travis-ci.org/aspnet/JitBench)          |
-| rel/1.0.1          | 1.0.1            | [![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=rel/1.0.1)](https://travis-ci.org/aspnet/JitBench)          |
+    git clone <JitBench repo>
+    cd JitBench
 
-## Instructions for JIT testing:
+### Example 1: Test using 2.0 RTM versions of all .Net Core components
 
-### Step 0:
+    .\RunBenchmark.ps1
 
-Clone the JitBench Repo
+Outputs:
 
-`git clone <JitBench repo>`
+	... lots of logging omitted, then at the bottom MusicStore runs ...
 
-`cd JitBench`
+	Server started in 2847ms
+	
+	Starting request to http://localhost:5000
+	Response: OK
+	Request took 618ms
+	
+	Cold start time (server start + first request time): 3465ms
+	
+	
+	Running 100 requests
+	Steadystate min response time: 3ms
+	Steadystate max response time: 8ms
+	Steadystate average response time: 3ms
+	
+	ASP.NET loaded from store
 
-### Step 1:
+### Example 2: Test with a custom version of the shared framework
 
-Get the newest dotnet Shared Runtime as 'repo local' 
+    .\RunBenchmark.ps1 -FrameworkVersion 2.1.0-preview1-25818-02
 
-**Windows**
+This will automatically select an LKG version of the SDK capable of working with this version of the framework because 2.0.0 SDK won't work. In this case, SDK 2.2.0-preview1-007558 is selected and printed in the log. ASP.Net remains 2.0.0.
 
-`.\Dotnet-Install.ps1 -SharedRuntime -InstallDir .dotnet -Channel master -Architecture x64`
+### Example 3: Test with a custom version of shared framework and a private build of CoreCLR
 
-`.\Dotnet-Install.ps1 -InstallDir .dotnet -Channel master -Architecture x64`
+    .\RunBenchmark.ps1 -FrameworkVersion 2.1.0-preview1-25818-02 -CoreCLRPrivateBinDirPath F:\github\coreclr\bin\Product\Windows_NT.x64.Release\`
 
-**OSX**
+This will automatically copy and use the private CoreCLR and clrjit binaries from your build instead of using the ones downloaded in the shared framework.
 
-`./dotnet-install.sh -sharedruntime -runtimeid osx.10.12-x64 -installdir .dotnet -channel master -architecture x64` 
+**KNOWN ISSUE**: Building R2R images will NOT use the private binaries within crossgen, instead it uses binaries from the NuGet cache.
 
-`source ./dotnet-install.sh -installdir .dotnet -channel master -architecture x64`
+**RECOMMENDATION**: The CoreCLR repo has a dependencies.props file at its root and one of the properties inside is CoreClrPackageVersion. Picking that version of the shared framework helps to ensure your private bits are compatible with the other binaries that aren't being replaced.
 
-**Linux**
+### Example 4: See the commands that will be used to run the benchmark without actually running it
 
-`./dotnet-install.sh -sharedruntime -runtimeid linux-x64 -installdir .dotnet -channel master -architecture x64` 
+    .\RunBenchmark.ps1 -WhatIf
 
-`source ./dotnet-install.sh -installdir .dotnet -channel master -architecture x64`
+Outputs:
 
+     ***** Step 1 - Set Versions *******
+    cd F:\github\JitBench
+    .\AspNet-SetVersions.ps1
+    
+     ***** Step 2 - Setup Dotnet Runtime and SDK *******
+    .\DotNet-Install.ps1 -SharedRuntime -InstallDir .dotnet -Channel master -Version 2.0.0 -Architecture x64
+    .\DotNet-Install.ps1 -InstallDir .dotnet -Channel master -Version 2.0.0 -Architecture x64
+    
+     ***** Step 3 - Generate Store *******
+    cp ./CreateStore/bugfix_sdk_1682/Microsoft.NET.ComposeStore.targets .dotnet/sdk/2.0.0/Sdks/Microsoft.NET.Sdk/build/Microsoft.NET.ComposeStore.targets
+    .\AspNet-GenerateStore.ps1 -InstallDir .store -Architecture x64 -Runtime win7-x64
+    
+     ***** Step 4 - Restore MusicStore *******
+    cd src\MusicStore
+    dotnet restore
+    
+     ***** Step 5 - Publish MusicStore *******
+    rm -r bin\Release\netcoreapp2.0\publish
+    dotnet publish -c Release -f netcoreapp2.0 --manifest F:\github\JitBench\.store\x64\netcoreapp2.0\artifact.xml /p:MvcRazorCompileOnPublish=false
+    
+     ***** Step 6 - Run MusicStore *******
+    cd bin\Release\netcoreapp2.0\publish
+    dotnet MusicStore.dll
 
-You need to run **both** of these commands in this particular order. This will grab the latest shared runtime and SDK and copy them to `<JitBench>\.dotnet`. Note you need to `source` the second script so that it can update your `$PATH`.
+IMPORTANT: .\AspNet-SetVersions.ps1 sets environment variables and writes files that the other commands rely on to work. If you start running the commands manually, make sure the environment is set up first.
 
-You should also have this version of `dotnet` on your path at this point. `dotnet --info` will print the version and it should match what you see in the output of the above commands.
+### Example 5: Run the benchmark with Precompiled Views enabled
 
-### Step 2:
+    .\RunBenchmark.ps1 -PrecompiledViews
 
-Modify the shared framework (if necessary).
+By default precompiled views are not used. See the View Compilation section below for more info.
 
-If you need to use a private build of the JIT or other CoreCLR components, now is a good time to update the shared framework with your bits. Copy any binaries you need to use into the shared framework in `<JitBench>\.dotnet\shared\Microsoft.NETCore.App\<version>`. The version should match the version that downloaded in step 1.
+### Example 6: Do all the benchmark preparation steps, but don't run MusicStore
 
-### Step 3a:
+    .\RunBenchmark.ps1 -SetupOnly
 
-Generate Crossgen/R2R binaries locally
-
-**Windows**
-
-`.\AspNet-GenerateStore.ps1 -InstallDir .store -Architecture x64 -Runtime win7-x64`
-
-**OSX**
-
-`source ./aspnet-generatestore.sh -i .store --arch x64 -r osx.10.12-x64`
-
-This will generate new crossgen/R2R images locally using the same shared framework version
-
-This step will also set some environment variables that affect the behavior of the subsequent commands. You'll see in the console output some of the information about the environment variables that were set.
-
-This step assumes the latest version of ASP.NET and the shared framework. Use the `-AspNetVersion` and `-FrameworkVersion` parameters to override these.
-
-### Step 4:
-
-Restore dependency packages
-
-`cd src\MusicStore`
-
-`dotnet restore`
-
-You should see that all of the ASP.NET dependencies that get restored during this stage have the same version number as the output of step 3. 
-
-### Step 5: 
-
-Build/publish MusicStore
-
-**Windows**
-
-`dotnet publish -c Release -f netcoreapp2.1 --manifest $env:JITBENCH_ASPNET_MANIFEST` (powershell)
-
-OR
-
-`dotnet publish -c Release -f netcoreapp2.1 --manifest %JITBENCH_ASPNET_MANIFEST%` (cmd)
-
-**OSX**
-
-`dotnet publish -c Release -f netcoreapp2.1 --manifest $JITBENCH_ASPNET_MANIFEST`
-
-This will publish the app to `bin\Release\netcoreapp2.1\publish`. You should only see the `MusicStore.dll` and a few other project related assest here if you passed the `--manifest` argument.
-
-### Step 6:
-
-Run the app
-
-`cd bin\Release\netcoreapp2.1\publish`
-
-`dotnet MusicStore.dll`
-
-You should see console output like:
-```
-Server started in 1723ms
-
-Starting request to http://localhost:5000
-Response: OK
-Request took 3014ms
-
-Cold start time (server start + first request time): 4737ms
+This runs steps 1-5 in the -WhatIf output from above. You can now run dotnet MusicStore.dll manually (perhaps in a loop or with ETW collection turned on). 
 
 
-Running 100 requests
-Steadystate min response time: 4ms
-Steadystate max response time: 15ms
-Steadystate average response time: 4ms
-```
 
 ## Other things you can do
 
@@ -141,7 +108,7 @@ MVC can pre-compile the view files on publish.
 
 To do this change up your *step 5* publish command
 
-`dotnet publish -c Release -f netcoreapp2.1 --manifest $env:JITBENCH_ASPNET_MANIFEST /p:MvcRazorCompileOnPublish=true` (powershell)
+`dotnet publish -c Release -f netcoreapp2.0 --manifest $env:JITBENCH_ASPNET_MANIFEST /p:MvcRazorCompileOnPublish=true` (powershell)
 
 After doing a publish this way you shouldn't have a `Views` folder in the publish output. 
 
@@ -235,9 +202,9 @@ This will restore package and runtime dependencies. In general we already have t
 
 This step will use the environment variables `JITBENCH_ASPNET_VERSION` and `JITBENCH_FRAMEWORK_VERSION` to pin the version of the ASP.NET libraries and shared framework based on Step 3.
 
-### Step 5: `dotnet publish -c Release -f netcoreapp2.1 --manifest $env:JITBENCH_ASPNET_MANIFEST`
+### Step 5: `dotnet publish -c Release -f netcoreapp2.0 --manifest $env:JITBENCH_ASPNET_MANIFEST`
 
-This will build and publish the application in the `Release` configuration and targeting `netcoreapp20` as the target framework. `netcoreapp20` is what we refer to as the *shared framework*.
+This will build and publish the application in the `Release` configuration and targeting `netcoreapp2.0` as the target framework. `netcoreapp2.0` is what we refer to as the *shared framework*.
 
 The `--manifest` argument specifies a list of binaries that are already present in a 'shared' location. Now this 'shared' location was created by step 2, and the list of files is stored in the `JITBENCH_ASPNET_MANIFEST` environment variable. Since these binaries weren't copied to the publish output, they will be loaded instead from `DOTNET_SHARED_STORE`. See [here](https://github.com/dotnet/core-setup/blob/master/Documentation/design-docs/DotNetCore-SharedPackageStore.md) for a more thorough description.
 
