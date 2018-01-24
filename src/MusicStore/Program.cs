@@ -14,9 +14,11 @@ namespace MusicStore
         public static void Main(string[] args)
         {
             var totalTime = Stopwatch.StartNew();
+            MusicStoreEventSource eventSource = new MusicStoreEventSource();
+            eventSource.ServerStartupBegin();
 
             var config = new ConfigurationBuilder()
-                .AddCommandLine(args)
+                .AddCommandLine(new string[0]) 
                 .AddEnvironmentVariables(prefix: "ASPNETCORE_")
                 .Build();
 
@@ -37,60 +39,94 @@ namespace MusicStore
             host.Start();
 
             totalTime.Stop();
-            var serverStartupTime = totalTime.ElapsedMilliseconds;
-            Console.WriteLine("Server started in {0}ms", serverStartupTime);
-            Console.WriteLine();
+            int serverStartupTime = (int)totalTime.ElapsedMilliseconds;
+            eventSource.ServerStartupEnd(serverStartupTime);
+
+
+
+
 
             using (var client = new HttpClient())
             {
-                Console.WriteLine("Starting request to http://localhost:5000");
                 var requestTime = Stopwatch.StartNew();
+                eventSource.FirstRequestBegin();
                 var response = client.GetAsync("http://localhost:5000").Result;
                 response.EnsureSuccessStatusCode(); // Crash immediately if something is broken
                 requestTime.Stop();
-                var firstRequestTime = requestTime.ElapsedMilliseconds;
+                int firstRequestTime = (int)requestTime.ElapsedMilliseconds;
+                eventSource.FirstRequestEnd(firstRequestTime);
 
-                Console.WriteLine("Response: {0}", response.StatusCode);
-                Console.WriteLine("Request took {0}ms", firstRequestTime);
+                Console.WriteLine("============= Startup Performance ============");
                 Console.WriteLine();
-                Console.WriteLine("Cold start time (server start + first request time): {0}ms", serverStartupTime + firstRequestTime);
+                Console.WriteLine("Server start (ms): {0,5}", serverStartupTime);
+                Console.WriteLine("1st Request (ms):  {0,5}", firstRequestTime);
+                Console.WriteLine("Total (ms):        {0,5}", serverStartupTime + firstRequestTime);
                 Console.WriteLine();
                 Console.WriteLine();
-                
-                var minRequestTime = long.MaxValue;
-                var maxRequestTime = long.MinValue;
-                var averageRequestTime = 0.0;
+                Console.WriteLine();
 
-                Console.WriteLine("Running 100 requests");
-                for (var i = 1; i <= 100; i++)
+                if (args.Length == 0 || args[0] != "-skipSteadyState")
                 {
-                    requestTime.Restart();
-                    response = client.GetAsync("http://localhost:5000").Result;
-                    requestTime.Stop();
+                    int[] threshholds = new int[] { 500, 1000, 1500, 2000, 10000 };
+                    double totalTimeMs = 0;
+                    int totalRequests = 0;
+                    Console.WriteLine("========== Steady State Performance ==========");
+                    Console.WriteLine();
+                    Console.WriteLine("  Requests    Aggregate Time(ms)    Req/s   Request Min(ms)   Request Max(ms)");
+                    Console.WriteLine("-----------   ------------------   ------   ---------------   ---------------");
 
-                    var requestTimeElapsed = requestTime.ElapsedMilliseconds;
-                    if (requestTimeElapsed < minRequestTime)
+                    for (int i = 0; i < threshholds.Length; i++)
                     {
-                        minRequestTime = requestTimeElapsed;
+                        int iterationRequests = threshholds[i] - totalRequests;
+                        eventSource.RequestBatchBegin(i, iterationRequests);
+                        MeasureThroughput(client, iterationRequests, out double msRequired, out double minRequestTime, out double maxRequestTime, out double requestPerSec);
+                        eventSource.RequestBatchEnd(i, iterationRequests, (int)msRequired, minRequestTime, maxRequestTime);
+                        totalTimeMs += msRequired;
+                        Console.WriteLine("{0,5:D}-{1,5:D}   {2,18:D}   {3,5:F}   {4,15:F}   {5,15:F}",
+                                           totalRequests + 1, totalRequests + iterationRequests, (int)totalTimeMs, requestPerSec, minRequestTime, maxRequestTime);
+                        totalRequests += iterationRequests;
                     }
 
-                    if (requestTimeElapsed > maxRequestTime)
-                    {
-                        maxRequestTime = requestTimeElapsed;
-                    }
-
-                    // Rolling average of request times
-                    averageRequestTime = (averageRequestTime * ((i - 1.0) / i)) + (requestTimeElapsed * (1.0 / i));
+                    Console.WriteLine();
+                    Console.WriteLine("Tip: If you only care about startup performance, use the -skipSteadyState argument to skip these measurements");
                 }
 
-                Console.WriteLine("Steadystate min response time: {0}ms", minRequestTime);
-                Console.WriteLine("Steadystate max response time: {0}ms", maxRequestTime);
-                Console.WriteLine("Steadystate average response time: {0}ms", (int)averageRequestTime);
             }
 
-            Console.WriteLine();
-
+            
             VerifyLibraryLocation();
+        }
+
+       
+        
+
+        private static void MeasureThroughput(HttpClient client, int countRequests, out double msRequired, out double minRequestTime, out double maxRequestTime, out double requestPerSec)
+        {
+            var requestGroupTimer = Stopwatch.StartNew();
+            var requestTime = Stopwatch.StartNew();
+            minRequestTime = long.MaxValue;
+            maxRequestTime = long.MinValue;
+
+            for (int i = 1; i <= countRequests; i++)
+            {
+                requestTime.Restart();
+                var response = client.GetAsync("http://localhost:5000").Result;
+                requestTime.Stop();
+
+                var requestTimeElapsed = requestTime.ElapsedTicks*1000.0/Stopwatch.Frequency;
+                if (requestTimeElapsed < minRequestTime)
+                {
+                    minRequestTime = requestTimeElapsed;
+                }
+
+                if (requestTimeElapsed > maxRequestTime)
+                {
+                    maxRequestTime = requestTimeElapsed;
+                }
+            }
+
+             msRequired = requestGroupTimer.ElapsedTicks*1000.0/Stopwatch.Frequency;
+             requestPerSec = countRequests*1000/msRequired;
         }
 
         private static void VerifyLibraryLocation()
@@ -103,10 +139,6 @@ namespace MusicStore
                 Console.WriteLine("ASP.NET loaded from bin. This is a bug if you wanted crossgen");
                 Console.WriteLine("ASP.NET loaded from bin. This is a bug if you wanted crossgen");
                 Console.WriteLine("ASP.NET loaded from bin. This is a bug if you wanted crossgen");
-            }
-            else
-            {
-                Console.WriteLine("ASP.NET loaded from store");
             }
         }
     }
