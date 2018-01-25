@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using Microsoft.AspNetCore.Hosting;
@@ -67,23 +68,23 @@ namespace MusicStore
 
                 if (args.Length == 0 || args[0] != "-skipSteadyState")
                 {
-                    int[] threshholds = new int[] { 500, 1000, 1500, 2000, 10000 };
-                    double totalTimeMs = 0;
-                    int totalRequests = 0;
+                    int[] threshholds = new int[] { 100, 250, 500, 750, 1000, 1500, 2000, 3000, 5000, 10000 };
+                    double totalTimeMs = serverStartupTime + firstRequestTime;
+                    int totalRequests = 1;
                     Console.WriteLine("========== Steady State Performance ==========");
                     Console.WriteLine();
-                    Console.WriteLine("  Requests    Aggregate Time(ms)    Req/s   Request Min(ms)   Request Max(ms)");
-                    Console.WriteLine("-----------   ------------------   ------   ---------------   ---------------");
+                    Console.WriteLine("  Requests    Aggregate Time(ms)    Req/s   Req Min(ms)   Req Mean(ms)   Req Median(ms)   Req Max(ms)   SEM(%)");
+                    Console.WriteLine("-----------   ------------------   ------   -----------   ------------   --------------   -----------   ------");
 
                     for (int i = 0; i < threshholds.Length; i++)
                     {
                         int iterationRequests = threshholds[i] - totalRequests;
                         eventSource.RequestBatchBegin(i, iterationRequests);
-                        MeasureThroughput(client, iterationRequests, out double msRequired, out double minRequestTime, out double maxRequestTime, out double requestPerSec);
-                        eventSource.RequestBatchEnd(i, iterationRequests, (int)msRequired, minRequestTime, maxRequestTime);
-                        totalTimeMs += msRequired;
-                        Console.WriteLine("{0,5:D}-{1,5:D}   {2,18:D}   {3,5:F}   {4,15:F}   {5,15:F}",
-                                           totalRequests + 1, totalRequests + iterationRequests, (int)totalTimeMs, requestPerSec, minRequestTime, maxRequestTime);
+                        MeasureThroughput(client, iterationRequests, out double batchTotalTimeMs, out double minRequestTime, out double meanRequestTimeMs, out double medianRequestTimeMs, out double maxRequestTime,  out double standardErrorMs);
+                        eventSource.RequestBatchEnd(i, iterationRequests, (int)batchTotalTimeMs, minRequestTime, meanRequestTimeMs, medianRequestTimeMs, maxRequestTime, standardErrorMs);
+                        totalTimeMs += batchTotalTimeMs;
+                        Console.WriteLine("{0,5:D}-{1,5:D}   {2,18:D}   {3,5:F}   {4,11:F}   {5,12:F}   {6,14:F}   {7,11:F}   {8,6:F}",
+                                           totalRequests + 1, totalRequests + iterationRequests, (int)totalTimeMs, 1000.0/meanRequestTimeMs, minRequestTime, meanRequestTimeMs, medianRequestTimeMs, maxRequestTime, standardErrorMs*100.0/meanRequestTimeMs);
                         totalRequests += iterationRequests;
                     }
 
@@ -100,33 +101,29 @@ namespace MusicStore
        
         
 
-        private static void MeasureThroughput(HttpClient client, int countRequests, out double msRequired, out double minRequestTime, out double maxRequestTime, out double requestPerSec)
+        private static void MeasureThroughput(HttpClient client, int countRequests, out double batchTotalTimeMs, out double minRequestTimeMs, out double meanRequestTimeMs, out double medianRequestTimeMs, out double maxRequestTimeMs, out double standardErrorMs)
         {
-            var requestGroupTimer = Stopwatch.StartNew();
+            double[] requestTimes = new double[countRequests];
             var requestTime = Stopwatch.StartNew();
-            minRequestTime = long.MaxValue;
-            maxRequestTime = long.MinValue;
-
-            for (int i = 1; i <= countRequests; i++)
+            
+            for (int i = 0; i < countRequests; i++)
             {
                 requestTime.Restart();
                 var response = client.GetAsync("http://localhost:5000").Result;
                 requestTime.Stop();
 
-                var requestTimeElapsed = requestTime.ElapsedTicks*1000.0/Stopwatch.Frequency;
-                if (requestTimeElapsed < minRequestTime)
-                {
-                    minRequestTime = requestTimeElapsed;
-                }
-
-                if (requestTimeElapsed > maxRequestTime)
-                {
-                    maxRequestTime = requestTimeElapsed;
-                }
+                requestTimes[i] = requestTime.ElapsedTicks * 1000.0 / Stopwatch.Frequency;
             }
 
-             msRequired = requestGroupTimer.ElapsedTicks*1000.0/Stopwatch.Frequency;
-             requestPerSec = countRequests*1000/msRequired;
+            Array.Sort(requestTimes);
+            batchTotalTimeMs = requestTimes.Sum();
+            minRequestTimeMs = requestTimes[0];
+            medianRequestTimeMs = requestTimes[countRequests / 2];
+            meanRequestTimeMs = batchTotalTimeMs / countRequests;
+            maxRequestTimeMs = requestTimes[countRequests - 1];
+            double meanRequestTimeMsCopy = meanRequestTimeMs; // can't refer to out value inside the lambda
+            double sampleStandardDeviation = Math.Sqrt(requestTimes.Select(x => (x - meanRequestTimeMsCopy) * (x - meanRequestTimeMsCopy)).Sum()/(countRequests-1));
+            standardErrorMs = sampleStandardDeviation / Math.Sqrt(countRequests);
         }
 
         private static void VerifyLibraryLocation()

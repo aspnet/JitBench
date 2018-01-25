@@ -34,8 +34,8 @@ public class MusicStoreEventSource : EventSource
     }
 
     [Event(6)]
-    public void RequestBatchEnd(int batchNumber, int requestCount, int batchTimeMs, double minRequestTimeMs, double maxRequestTimeMs)
+    public void RequestBatchEnd(int batchNumber, int requestCount, int batchTimeMs, double minRequestTimeMs, double meanRequestTimeMs, double medianRequestTimeMs, double maxRequestTimeMs, double standardErrorMs)
     {
-        WriteEvent(6, batchNumber, requestCount, batchTimeMs, minRequestTimeMs, maxRequestTimeMs);
+        WriteEvent(6, batchNumber, requestCount, batchTimeMs, minRequestTimeMs, meanRequestTimeMs, medianRequestTimeMs, maxRequestTimeMs, standardErrorMs);
     }
 }
