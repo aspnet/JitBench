@@ -35,9 +35,9 @@ echo "Running MusicStore"
 cd bin/Release/netcoreapp2.0/publish
 output=$(dotnet ./MusicStore.dll | tee /dev/tty; exit ${PIPESTATUS[0]})
 
-if [[ "$output" != *"ASP.NET loaded from store"* ]]
+if [[ "$output" == *"ASP.NET loaded from bin"* ]]
 then
-    echo "ASP.NET was not loaded from the store. This is a bug."
+    echo "ASP.NET was not loaded from the store. This is a bug. CI will now fail."
     exit 1
 fi
 
