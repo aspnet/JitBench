@@ -1,0 +1,33 @@
+<Project>
+  <PropertyGroup>
+    <!-- This will prevent our build system from trying to package this project. -->
+    <IsPackable>false</IsPackable>
+    
+    <!-- This will be set as an environment variable to pin the version. -->
+    <AspNetVersion>$(JITBENCH_ASPNET_VERSION)</AspNetVersion>
+    <RuntimeFrameworkVersion>$(JITBENCH_FRAMEWORK_VERSION)</RuntimeFrameworkVersion>
+  </PropertyGroup>
+
+  <!-- View Compilation on publish is off by default -->
+  <PropertyGroup Condition=" '$(MvcRazorCompileOnPublish)' == '' ">
+    <MvcRazorCompileOnPublish>false</MvcRazorCompileOnPublish>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition=" '$(AspNetVersion)' == '' ">
+    <AspNetVersion>2.0.0</AspNetVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(RuntimeFrameworkVersion)' == '' ">
+    <RuntimeFrameworkVersion>2.0.0</RuntimeFrameworkVersion>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.All">
+      <Version>$(AspNetVersion)</Version>
+    </PackageReference>
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
+  </PropertyGroup>
+
+</Project>
