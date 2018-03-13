@@ -21,8 +21,9 @@
   
   <!-- the following compile include points to git submodule, we want to have everything from the AllReady except the Program.cs (we provide our own) -->
   <ItemGroup>
-    <Compile Include="..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\**\*.cs" />
+    <Compile Include="..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\**\*.cs" Exclude="..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\Program.cs" />
     <Compile Include="..\..\submodules\AllReady\AllReadyApp\AllReady.Core\Notifications\*.cs" />
+    <Compile Include="..\MusicStore\JitBenchHelper.cs" Link="JitBenchHelper.cs" />
 
     <Content Include="..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\**\*.cshtml">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
