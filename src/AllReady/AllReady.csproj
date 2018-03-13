@@ -29,9 +29,6 @@
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\web.config;..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\version.json;..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\appsettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>
