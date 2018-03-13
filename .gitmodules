@@ -1,0 +1,3 @@
+[submodule "submodules\\AllReady"]
+	path = submodules\\AllReady
+	url = https://github.com/HTBox/allReady/
