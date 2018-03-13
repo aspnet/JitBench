@@ -22,6 +22,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.Twitter;
 using Microsoft.Extensions.PlatformAbstractions;
 using System.Linq;
+using Hangfire.MemoryStorage;
 
 namespace AllReady
 {
@@ -45,7 +46,7 @@ namespace AllReady
             });
 
             // Add Entity Framework services to the services container.
-            services.AddDbContext<AllReadyContext>(options => options.UseSqlServer(Configuration["Data:DefaultConnection:ConnectionString"]));
+            services.AddDbContext<AllReadyContext>(options => options.UseInMemoryDatabase(databaseName: "inMemoryDb"));
 
             Options.LoadConfigurationOptions(services, Configuration);
 
@@ -90,7 +91,7 @@ namespace AllReady
             });
 
             //Hangfire
-            services.AddHangfire(configuration => configuration.UseSqlServerStorage(Configuration["Data:HangfireConnection:ConnectionString"]));
+            services.AddHangfire(configuration => configuration.UseMemoryStorage());
 
             services.AddScoped<IAllReadyUserManager, AllReadyUserManager>();
             services.AddScoped<IUserAuthorizationService, UserAuthorizationService>();
@@ -137,20 +138,7 @@ namespace AllReady
 
             Authentication.ConfigureAuthentication(app, Configuration);
 
-            // Check for -PurgeRefreshSampleData command line argument.
-            bool purgeRefreshSampleData = Environment.GetCommandLineArgs().Contains("-PurgeRefreshSampleData", StringComparer.InvariantCultureIgnoreCase);
-
-            if (purgeRefreshSampleData)
-            {
-                // Note: This will also delete Hangfire and other non-code-first objects.
-                context.Database.EnsureDeleted();
-            }
-
-            //call Migrate here to force the creation of the AllReady database so Hangfire can create its schema under it
-            if (purgeRefreshSampleData || !env.IsProduction())
-            {
-                context.Database.Migrate();
-            }
+            context.Database.EnsureCreated();
 
             ////Hangfire
             app.UseHangfireDashboard("/hangfire", new DashboardOptions { Authorization = new[] { new HangfireDashboardAuthorizationFilter() } });
@@ -165,7 +153,7 @@ namespace AllReady
 
             // Add sample data and test admin accounts if specified in Config.Json.
             // for production applications, this should either be set to false or deleted.
-            if (purgeRefreshSampleData || Configuration["SampleData:InsertSampleData"] == "true")
+            if (Configuration["SampleData:InsertSampleData"] == "true")
             {
                 sampleData.InsertTestData().GetAwaiter().GetResult();
             }

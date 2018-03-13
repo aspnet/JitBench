@@ -21,7 +21,7 @@
   
   <!-- the following compile include points to git submodule, we want to have everything from the AllReady except the Program.cs (we provide our own) -->
   <ItemGroup>
-    <Compile Include="..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\**\*.cs" Exclude="..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\Program.cs" />
+    <Compile Include="..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\**\*.cs" Exclude="..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\Program.cs;..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\Startup.cs" />
     <Compile Include="..\..\submodules\AllReady\AllReadyApp\AllReady.Core\Notifications\*.cs" />
     <Compile Include="..\MusicStore\JitBenchHelper.cs" Link="JitBenchHelper.cs" />
 
@@ -39,10 +39,12 @@
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.0.0" />
     <PackageReference Include="Autofac" Version="4.2.1" />
     <PackageReference Include="CsvHelper" Version="2.16.3" />
-    <PackageReference Include="Hangfire" Version="1.6.8" />
-    <PackageReference Include="Hangfire.AspNetCore" Version="1.6.8" />
-    <PackageReference Include="Hangfire.Core" Version="1.6.8" />
-    <PackageReference Include="Hangfire.SqlServer" Version="1.6.8" />
+    <PackageReference Include="Hangfire" Version="1.6.13" />
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.6.13" />
+    <PackageReference Include="Hangfire.Core" Version="1.6.13" />
+    <PackageReference Include="Hangfire.SqlServer" Version="1.6.13" />
+    <PackageReference Include="Hangfire.MemoryStorage" Version="1.5.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="2.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.0.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.0" PrivateAssets="All" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
