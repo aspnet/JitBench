@@ -22,6 +22,7 @@
   <!-- the following compile include points to git submodule, we want to have everything from the AllReady except the Program.cs (we provide our own) -->
   <ItemGroup>
     <Compile Include="..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\**\*.cs" />
+    <Compile Include="..\..\submodules\AllReady\AllReadyApp\AllReady.Core\Notifications\*.cs" />
 
     <Content Include="..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\**\*.cshtml">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
@@ -30,10 +31,6 @@
     <Content Include="..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\web.config;..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\version.json;..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\AllReady.Core\AllReady.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
