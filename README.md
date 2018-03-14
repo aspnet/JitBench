@@ -5,7 +5,7 @@
 
 A repository for aspnet workloads suitable for testing the JIT.
 
-Right now there is only one workload app here, at `src/MusicStore`
+Right now there are two workload apps here: `src/MusicStore` and `src/AllReady`
 
 ## Example benchmark usage with powershell
 
@@ -102,6 +102,12 @@ This runs steps 1-5 in the -WhatIf output from above. You can now run dotnet Mus
 
 ## Other things you can do
 
+### Use AllReady app
+
+MusicStore is the default app being executed with `RunBenchmark.ps1`. If you want to try the `AllReady` app you need to provide one extra arguments to the script:
+
+`-App AllReady`
+
 ### View Compilation
 
 MVC can pre-compile the view files on publish. 
@@ -151,6 +157,13 @@ This is a big zip file of pre-optimized ASP.NET libraries. This is the best way 
 MusicStore is a good sample of what a typical but *small* customer app would look like for a browser-based LOB app or public website. Notably it uses auth, logging, databases, ORM, caching, and dynamic view content. It's a good representation of the concerns a typical production app needs to address.
 
 We've modified the app to start up the server and perform a single HTTP request with timing information. Then it will perform 100 requests (single threaded) and print some statistics. We feel like this is a good benchmark for both server cold start and local development cold start, and is suitable for iterating on quickly due to the ease of running.
+
+### About AllReady
+
+"allReady is an open-source solution focused on increasing awareness, efficiency and impact of preparedness campaigns as they are delivered by humanitarian and disaster response organizations in local communities. http://www.htbox.org/projects/allready"
+
+It's a real-world web app which uses some of the most popular libraries like `MediatR`, `Autofac`, `Hangfire`, `EntityFrameworkCore`, `Newtonsoft.Json` and `WindowsAzure.Storage`. 
+The benchmark does exactly the same job the MusicStore benchmark does. Our goal is to have a real-world web application scenario to optimize and test the performance for real workloads.
 
 ## Explanation (what does this do?)
 
