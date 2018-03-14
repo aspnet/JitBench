@@ -45,3 +45,4 @@ project.lock.json
 .testpublish/
 launchSettings.json
 global.json
+/src/AllReady/**/*.cshtml

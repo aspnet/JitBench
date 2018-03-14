@@ -24,12 +24,16 @@
     <Compile Include="..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\**\*.cs" Exclude="..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\Program.cs;..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\Startup.cs" />
     <Compile Include="..\..\submodules\AllReady\AllReadyApp\AllReady.Core\Notifications\*.cs" />
     <Compile Include="..\MusicStore\JitBenchHelper.cs" Link="JitBenchHelper.cs" />
-
-    <Content Include="..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\**\*.cshtml">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
+
+  <!-- we can't simply reference all razor views from submodule so we copy them -->
+  <ItemGroup>
+    <RazorViewsFiles Include="..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\**\*.cshtml" />
+  </ItemGroup>
+
+  <Target Name="CopyFiles" BeforeTargets="PreBuildEvent">
+    <Copy SourceFiles="@(RazorViewsFiles)" DestinationFiles="@(RazorViewsFiles->'$(MSBuildThisFileDirectory)\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="MediatR" Version="2.1.0" />
