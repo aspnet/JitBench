@@ -31,7 +31,7 @@
     <RazorViewsFiles Include="..\..\submodules\AllReady\AllReadyApp\Web-App\AllReady\**\*.cshtml" />
   </ItemGroup>
 
-  <Target Name="CopyFiles" BeforeTargets="PreBuildEvent">
+  <Target Name="CopyFiles" BeforeTargets="Restore">
     <Copy SourceFiles="@(RazorViewsFiles)" DestinationFiles="@(RazorViewsFiles->'$(MSBuildThisFileDirectory)\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>
 
