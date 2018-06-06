@@ -1,7 +1,7 @@
 
 # Tiered Compilation Testing Demo
 
-In .Net Core 2.1 RC we added a new preview feature called Tiered Compilation that helps improve startup times and steady state performance. This page shows how to test out
+In .Net Core 2.1 we added a new preview feature called Tiered Compilation that helps improve startup times and steady state performance. This page shows how to test out
  the feature quickly, either on your own applications or on a sample ASP.NET MusicStore application.
 
 
@@ -9,14 +9,14 @@ In .Net Core 2.1 RC we added a new preview feature called Tiered Compilation tha
 # Part 1 - Running an experiment
 
 
-## 1.1: Download the .Net Core 2.1 RC
+## 1.1: Download the .Net Core 2.1 SDK
 
-Pick an installer from https://www.microsoft.com/net/download/dotnet-core/sdk-2.1.300-rc1 that matches your OS. I am using Windows x64 here.
+Pick an installer from https://www.microsoft.com/net/download/dotnet-core that matches your OS. I am using Windows x64 here.
 
 
 ## 1.2: Get source for the application you want to test
 
-I'll be using the MusicStore test app but you can use any .Net Core app that runs on 2.1 RC. At a command prompt that has git:
+I'll be using the MusicStore test app but you can use any .Net Core app that runs on 2.1. At a command prompt that has git:
 
     F:\github>git clone https://github.com/aspnet/JitBench
     F:\github>cd JitBench
@@ -25,15 +25,15 @@ I'll be using the MusicStore test app but you can use any .Net Core app that run
 ## 1.3: Confirm you are using the right version of the .Net Core SDK
 
     F:\github\JitBench>dotnet --version
-    2.1.300-rc1-008673
+    2.1.300
 
-If you see a different version you may have installed a post-RC build or your app has a global.json targetting a different version of the SDK.
-You can explicitly direct dotnet to use the RC version of the SDK by creating global.json in the current directory with this text:
+If you see a different version you may have installed a more recent daily build or your app has a global.json targetting a different version of the SDK.
+You can explicitly direct dotnet to use the 2.1 RTM version of the SDK by creating global.json in the current directory with this text:
 
     {
         "sdk":
         {
-            "version": "2.1.300-rc1-008673"
+            "version": "2.1.300"
         }
     }
 
@@ -45,15 +45,15 @@ You can explicitly direct dotnet to use the RC version of the SDK by creating gl
 ## 1.5: Run the app without tiered compilation enabled
 
     F:\github\JitBench\src\MusicStore>cd bin\Release\netcoreapp2.1\publish\
-    F:\github\JitBench\src\MusicStore\bin\Release\netcoreapp2.1\publish> dotnet MusicStore.dll
+    F:\github\JitBench\src\MusicStore\bin\Release\netcoreapp2.1\publish>dotnet MusicStore.dll
 
 Test app output. This output is specific to the MusicStore test app, your apps invariably have different output:
 
     ============= Startup Performance ============
 
-    Server start (ms):   974
-    1st Request (ms):    674
-    Total (ms):         1648
+    Server start (ms):   856
+    1st Request (ms):    559
+    Total (ms):         1415
 
 
 
@@ -61,28 +61,27 @@ Test app output. This output is specific to the MusicStore test app, your apps i
 
       Requests    Aggregate Time(ms)    Req/s   Req Min(ms)   Req Mean(ms)   Req Median(ms)   Req Max(ms)   SEM(%)
     -----------   ------------------   ------   -----------   ------------   --------------   -----------   ------
-        2-  100                 1976   301.45          2.36           3.32             3.06         12.01     3.18
-      101-  250                 2442   321.92          2.37           3.11             2.96          7.35     1.63
-      251-  500                 3162   347.12          2.12           2.88             2.77         11.02     1.45
-      501-  750                 3874   351.00          2.05           2.85             2.79          5.18     0.82
-      751- 1000                 4644   324.80          2.31           3.08             2.95          7.55     1.25
-     1001- 1500                 6170   327.67          2.12           3.05             2.90         18.02     1.46
-     1501- 2000                 7603   348.84          2.06           2.87             2.78          5.24     0.79
-     2001- 3000                10550   339.38          2.12           2.95             2.83         19.77     0.77
+        2-  100                 1672   385.08          2.14           2.60             2.34         11.73     5.09
+      101-  250                 2024   425.75          2.07           2.35             2.30          3.98     0.85
+      251-  500                 2631   412.01          1.93           2.43             2.30         14.38     2.17
+      501-  750                 3190   446.61          2.01           2.24             2.20          3.89     0.65
+      751- 1000                 3901   351.85          2.05           2.84             2.54          5.07     1.23
+     1001- 1500                 5255   369.16          2.04           2.71             2.47         17.16     1.43
+     1501- 2000                 6531   392.05          1.88           2.55             2.34          5.96     1.22
+     2001- 3000                 8901   421.94          1.87           2.37             2.21         10.54     0.81
 
 ## 1.6: Run the app with tiered compilation enabled
 
-Tiered compilation can be turned on and off with an environment variable 'COMPlus_TieredCompilation'. If the value is
-not set or 0 then the feature is off, if the value is 1 the feature is on. 
+Tiered compilation can be turned on with an environment variable 'COMPlus_TieredCompilation=1'. 
 
-    F:\github\JitBench\src\MusicStore>set COMPlus_TieredCompilation=1
-    F:\github\JitBench\src\MusicStore\bin\Release\netcoreapp2.1\publish> dotnet MusicStore.dll
+    F:\github\JitBench\src\MusicStore\bin\Release\netcoreapp2.1\publish>set COMPlus_TieredCompilation=1
+    F:\github\JitBench\src\MusicStore\bin\Release\netcoreapp2.1\publish>dotnet MusicStore.dll
 
     ============= Startup Performance ============
 
-    Server start (ms):   871
-    1st Request (ms):    565
-    Total (ms):         1436
+    Server start (ms):   819
+    1st Request (ms):    452
+    Total (ms):         1271
 
 
 
@@ -90,14 +89,22 @@ not set or 0 then the feature is off, if the value is 1 the feature is on.
 
       Requests    Aggregate Time(ms)    Req/s   Req Min(ms)   Req Mean(ms)   Req Median(ms)   Req Max(ms)   SEM(%)
     -----------   ------------------   ------   -----------   ------------   --------------   -----------   ------
-        2-  100                 1896   214.81          2.81           4.66             3.89         21.91     5.83
-      101-  250                 2411   291.28          2.80           3.43             3.36          5.71     1.11
-      251-  500                 3107   359.22          1.84           2.78             2.70         12.71     1.76
-      501-  750                 3607   500.26          1.21           2.00             1.87          4.30     1.52
-      751- 1000                 4142   467.07          1.44           2.14             2.06          4.28     1.35
-     1001- 1500                 5168   487.32          1.41           2.05             1.94          9.97     1.15
-     1501- 2000                 6143   512.93          1.31           1.95             1.84          4.13     1.00
-     2001- 3000                 8160   495.75          1.22           2.02             1.89          7.72     0.86
+        2-  100                 1655   257.26          2.64           3.89             3.07         12.49     4.63
+      101-  250                 2052   377.73          2.20           2.65             2.59          4.50     0.96
+      251-  500                 2613   446.14          1.65           2.24             2.12         14.53     2.38
+      501-  750                 3006   636.52          1.23           1.57             1.44          3.41     1.52
+      751- 1000                 3412   615.70          1.36           1.62             1.58          2.90     0.88
+     1001- 1500                 4189   643.32          1.15           1.55             1.51          9.72     1.22
+     1501- 2000                 4955   652.77          1.24           1.53             1.49          4.01     0.56
+     2001- 3000                 6446   670.40          1.18           1.49             1.48          2.69     0.29
+
+
+NOTE: If an environment variable is not convenient for your benchmarking scenario, tiered compilation can also be
+enabled by either of these options:
+1) setting the app config property in the application's runtimeconfig.json "System.Runtime.TieredCompilation" : "true"
+2) setting an MSBuild property in the application's project file \<TieredCompilation>true\</TieredCompilation> ([Example](https://github.com/dotnet/core/blob/e9e6c91206a5dc327dcb41a46219e13a8a6e66d6/samples/dotnetsay/dotnetsay.csproj#L21)).
+ This causes the build to auto-generate a runtimeconfig.json with System.Runtime.TieredCompilation set to true.
+
 
 ## 1.7 Comparing performance
 

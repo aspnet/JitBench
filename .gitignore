@@ -44,5 +44,4 @@ project.lock.json
 .build/
 .testpublish/
 launchSettings.json
-global.json
 /src/AllReady/**/*.cshtml
