@@ -1,226 +1,192 @@
 
-# JitBench
+# Tiered Compilation Testing Demo
 
-![Build Status](https://travis-ci.org/aspnet/JitBench.svg?branch=rel/2.0.0)             
+In .Net Core 2.1 we added a new preview feature called Tiered Compilation that helps improve startup times and steady state performance. This page shows how to test out
+ the feature quickly, either on your own applications or on a sample ASP.NET MusicStore application.
 
-A repository for aspnet workloads suitable for testing the JIT.
 
-Right now there are two workload apps here: `src/MusicStore` and `src/AllReady`
 
-## Example benchmark usage with powershell
+# Part 1 - Running an experiment
 
-### First get the repo
 
-    git clone <JitBench repo>
-    cd JitBench
+## 1.1: Download the .Net Core 2.1 SDK
 
-### Example 1: Test using 2.0 RTM versions of all .Net Core components
+Pick an installer from https://www.microsoft.com/net/download/dotnet-core that matches your OS. I am using Windows x64 here.
 
-    .\RunBenchmark.ps1
 
-Outputs:
+## 1.2: Get source for the application you want to test
 
-	... lots of logging omitted, then at the bottom MusicStore runs ...
+I'll be using the MusicStore test app but you can use any .Net Core app that runs on 2.1. At a command prompt that has git:
 
-	Server started in 2847ms
-	
-	Starting request to http://localhost:5000
-	Response: OK
-	Request took 618ms
-	
-	Cold start time (server start + first request time): 3465ms
-	
-	
-	Running 100 requests
-	Steadystate min response time: 3ms
-	Steadystate max response time: 8ms
-	Steadystate average response time: 3ms
-	
-	ASP.NET loaded from store
+    F:\github>git clone https://github.com/aspnet/JitBench
+    F:\github>cd JitBench
+    F:\github\JitBench>git checkout tiered_compilation_demo
 
-### Example 2: Test with a custom version of the shared framework
+## 1.3: Confirm you are using the right version of the .Net Core SDK
 
-    .\RunBenchmark.ps1 -FrameworkVersion 2.1.0-preview1-25818-02
+    F:\github\JitBench>dotnet --version
+    2.1.300
 
-This will automatically select an LKG version of the SDK capable of working with this version of the framework because 2.0.0 SDK won't work. In this case, SDK 2.2.0-preview1-007558 is selected and printed in the log. ASP.Net remains 2.0.0.
+If you see a different version you may have installed a more recent daily build or your app has a global.json targetting a different version of the SDK.
+You can explicitly direct dotnet to use the 2.1 RTM version of the SDK by creating global.json in the current directory with this text:
 
-### Example 3: Test with a custom version of shared framework and a private build of CoreCLR
+    {
+        "sdk":
+        {
+            "version": "2.1.300"
+        }
+    }
 
-    .\RunBenchmark.ps1 -FrameworkVersion 2.1.0-preview1-25818-02 -CoreCLRPrivateBinDirPath F:\github\coreclr\bin\Product\Windows_NT.x64.Release\`
+## 1.4: Build and publish the application
 
-This will automatically copy and use the private CoreCLR and clrjit binaries from your build instead of using the ones downloaded in the shared framework.
+    F:\github\JitBench>cd src\MusicStore
+    F:\github\JitBench\src\MusicStore>dotnet publish -c Release
 
-**KNOWN ISSUE**: Building R2R images will NOT use the private binaries within crossgen, instead it uses binaries from the NuGet cache.
+## 1.5: Run the app without tiered compilation enabled
 
-**RECOMMENDATION**: The CoreCLR repo has a dependencies.props file at its root and one of the properties inside is CoreClrPackageVersion. Picking that version of the shared framework helps to ensure your private bits are compatible with the other binaries that aren't being replaced.
+    F:\github\JitBench\src\MusicStore>cd bin\Release\netcoreapp2.1\publish\
+    F:\github\JitBench\src\MusicStore\bin\Release\netcoreapp2.1\publish>dotnet MusicStore.dll
 
-### Example 4: See the commands that will be used to run the benchmark without actually running it
+Test app output. This output is specific to the MusicStore test app, your apps invariably have different output:
 
-    .\RunBenchmark.ps1 -WhatIf
+    ============= Startup Performance ============
 
-Outputs:
+    Server start (ms):   856
+    1st Request (ms):    559
+    Total (ms):         1415
 
-     ***** Step 1 - Set Versions *******
-    cd F:\github\JitBench
-    .\AspNet-SetVersions.ps1
-    
-     ***** Step 2 - Setup Dotnet Runtime and SDK *******
-    .\DotNet-Install.ps1 -SharedRuntime -InstallDir .dotnet -Channel master -Version 2.0.0 -Architecture x64
-    .\DotNet-Install.ps1 -InstallDir .dotnet -Channel master -Version 2.0.0 -Architecture x64
-    
-     ***** Step 3 - Generate Store *******
-    cp ./CreateStore/bugfix_sdk_1682/Microsoft.NET.ComposeStore.targets .dotnet/sdk/2.0.0/Sdks/Microsoft.NET.Sdk/build/Microsoft.NET.ComposeStore.targets
-    .\AspNet-GenerateStore.ps1 -InstallDir .store -Architecture x64 -Runtime win7-x64
-    
-     ***** Step 4 - Restore MusicStore *******
-    cd src\MusicStore
-    dotnet restore
-    
-     ***** Step 5 - Publish MusicStore *******
-    rm -r bin\Release\netcoreapp2.0\publish
-    dotnet publish -c Release -f netcoreapp2.0 --manifest F:\github\JitBench\.store\x64\netcoreapp2.0\artifact.xml /p:MvcRazorCompileOnPublish=false
-    
-     ***** Step 6 - Run MusicStore *******
-    cd bin\Release\netcoreapp2.0\publish
-    dotnet MusicStore.dll
 
-IMPORTANT: .\AspNet-SetVersions.ps1 sets environment variables and writes files that the other commands rely on to work. If you start running the commands manually, make sure the environment is set up first.
 
-### Example 5: Run the benchmark with Precompiled Views enabled
+    ========== Steady State Performance ==========
 
-    .\RunBenchmark.ps1 -PrecompiledViews
+      Requests    Aggregate Time(ms)    Req/s   Req Min(ms)   Req Mean(ms)   Req Median(ms)   Req Max(ms)   SEM(%)
+    -----------   ------------------   ------   -----------   ------------   --------------   -----------   ------
+        2-  100                 1672   385.08          2.14           2.60             2.34         11.73     5.09
+      101-  250                 2024   425.75          2.07           2.35             2.30          3.98     0.85
+      251-  500                 2631   412.01          1.93           2.43             2.30         14.38     2.17
+      501-  750                 3190   446.61          2.01           2.24             2.20          3.89     0.65
+      751- 1000                 3901   351.85          2.05           2.84             2.54          5.07     1.23
+     1001- 1500                 5255   369.16          2.04           2.71             2.47         17.16     1.43
+     1501- 2000                 6531   392.05          1.88           2.55             2.34          5.96     1.22
+     2001- 3000                 8901   421.94          1.87           2.37             2.21         10.54     0.81
 
-By default precompiled views are not used. See the View Compilation section below for more info.
+## 1.6: Run the app with tiered compilation enabled
 
-### Example 6: Do all the benchmark preparation steps, but don't run MusicStore
+Tiered compilation can be turned on with an environment variable 'COMPlus_TieredCompilation=1'. 
 
-    .\RunBenchmark.ps1 -SetupOnly
+    F:\github\JitBench\src\MusicStore\bin\Release\netcoreapp2.1\publish>set COMPlus_TieredCompilation=1
+    F:\github\JitBench\src\MusicStore\bin\Release\netcoreapp2.1\publish>dotnet MusicStore.dll
 
-This runs steps 1-5 in the -WhatIf output from above. You can now run dotnet MusicStore.dll manually (perhaps in a loop or with ETW collection turned on). 
+    ============= Startup Performance ============
 
+    Server start (ms):   819
+    1st Request (ms):    452
+    Total (ms):         1271
 
 
-## Other things you can do
 
-### Use AllReady app
+    ========== Steady State Performance ==========
 
-MusicStore is the default app being executed with `RunBenchmark.ps1`. If you want to try the `AllReady` app you need to provide one extra arguments to the script:
+      Requests    Aggregate Time(ms)    Req/s   Req Min(ms)   Req Mean(ms)   Req Median(ms)   Req Max(ms)   SEM(%)
+    -----------   ------------------   ------   -----------   ------------   --------------   -----------   ------
+        2-  100                 1655   257.26          2.64           3.89             3.07         12.49     4.63
+      101-  250                 2052   377.73          2.20           2.65             2.59          4.50     0.96
+      251-  500                 2613   446.14          1.65           2.24             2.12         14.53     2.38
+      501-  750                 3006   636.52          1.23           1.57             1.44          3.41     1.52
+      751- 1000                 3412   615.70          1.36           1.62             1.58          2.90     0.88
+     1001- 1500                 4189   643.32          1.15           1.55             1.51          9.72     1.22
+     1501- 2000                 4955   652.77          1.24           1.53             1.49          4.01     0.56
+     2001- 3000                 6446   670.40          1.18           1.49             1.48          2.69     0.29
 
-`-App AllReady`
 
-### View Compilation
+NOTE: If an environment variable is not convenient for your benchmarking scenario, tiered compilation can also be
+enabled by either of these options:
+1) setting the app config property in the application's runtimeconfig.json "System.Runtime.TieredCompilation" : "true"
+2) setting an MSBuild property in the application's project file \<TieredCompilation>true\</TieredCompilation> ([Example](https://github.com/dotnet/core/blob/e9e6c91206a5dc327dcb41a46219e13a8a6e66d6/samples/dotnetsay/dotnetsay.csproj#L21)).
+ This causes the build to auto-generate a runtimeconfig.json with System.Runtime.TieredCompilation set to true.
 
-MVC can pre-compile the view files on publish. 
 
-To do this change up your *step 5* publish command
+## 1.7 Comparing performance
 
-`dotnet publish -c Release -f netcoreapp2.0 --manifest $env:JITBENCH_ASPNET_MANIFEST /p:MvcRazorCompileOnPublish=true` (powershell)
+The MusicStore test application uses System.Diagnostics.StopWatch and console output to quickly log some numbers for startup or steady-state performance, but ultimately you will have to decide what performance metrics are most important to your application. I won't attempt to repeat the wealth of general benchmarking and statistical analysis advice available around the web and thankfully these larger timescale benchmarks are usually forgiving, but a few common issues to look out for:
 
-After doing a publish this way you shouldn't have a `Views` folder in the publish output. 
 
-----
+- Run your test application several times before paying any heed to the measurements. The first few runs will likely warm up various caches and the performance differences these caches cause will confound your results. Alternatively
+you can measure the very first launch of the application after booting the machine with nothing cached but now you need to power the cycle the machine and follow the exact same startup sequence between each measurement to
+keep it consistent.
+- Measure the same thing many times, then average.
+- Try to minimize the number of other applications, services, and network activity running on the machine. If you must have activity as part of the test environment try to keep it constant throughout the test period.
+- After you have measured, sanity check the measurement distribution and make sure averages aren't being unduly influenced by a few outliers or unexpectedly multi-modal measurements.
 
-This is interesting to do because view compilation at runtime eats up about 50% our startup time. So by excluding it we measure a much different subset of the application. 
+# Part 2 - Exploring the application behavior
 
-Compile on publish is the default for publishing for new applications. We expect most users to use runtime compilation for local inner-loop and publish-time compilation for production. 
+## Is tiered compilation working?
 
-## FAQ
+If your benchmarks change dramatically like the example above it is easy to see that tiered compilation is working, but if there is no change you might wonder whether tiered compilation benefits your scenario
+or there was a mistake turning it on. One easy way to check is by using [PerfView](https://github.com/Microsoft/perfview/blob/master/documentation/Downloading.md). Make sure to get at least PerfView version 
+2.0.15 that has support for visualizing tiered compilation information. You want to [collect a machine-wide trace](https://channel9.msdn.com/Series/PerfView-Tutorial/PerfView-Tutorial-11-Data-Collection-for-Server-Scenarios)
+that includes the execution of your test app as shown in step 1.6 above. By default the collector uses a circular buffer with a 500MB capacity and the demo app generates a lot of events which may exceed that.
+Using PerfView's GUI I increased the limit to 1000MB to avoid losing any data. Once collection is complete open the JitStats view within the Advanced Group in the tree view control:
 
-### What about x86?
+![MainScreen](./images/PerfView_MainScreen.jpg)
 
-You can do x86! Just substitute `x86` for `x64` in step 1 and step 3.
+In the JitStats view there are several indications that confirm tiered compilation was operating:
 
-You need to do a `git clean -xdf` and start over at step 1 if you are switching architectures.
+![JitStats1](./images/PerfView_JitStats1.jpg)
 
-### Things are failing what do I do?
 
-Do a `git clean -xdf` and get back to a clean state. Then start over at step 1. 
+Known issues:
 
-If you still have a problem, open an issue on this repo. Opening an issue here is the best way to get a quick response.
 
-### Powershell Errors
+- PerfView analysis will only detect tiered compilation is in use when background compilations occur in the trace. In very short running applications its possible that tiered compilation
+is enabled but not enough code is run to trigger any method to perform a background recompile. In this case PerfView will incorrectly report tiered compilation is disabled because there is no evidence of it in the trace.
 
-The scripts in this repo use powershell. If you're not a powershell user you will have to do some first-time setup on your machine.
+- It is possible for PerfView to lose data in the circular buffer even if the UI does not show that it filled up. Usually this can be easily spotted because most of the jit events will be missing, and the problem can be avoided by making the buffer larger or not tracing as long. If all the trace events for tiered compilation are lost then PerfView will incorrectly indicate the feature was disabled.
 
-Open powershell as admin and run `Set-ExecutionPolicy Unrestricted`, accept the prompt. By default powershell does not allow you to run scripts :-1:
 
-### What is Microsoft.AspNetCore.All
+Both of these issues should be improved in the future.
 
-This is a meta-package that contains all of the ASP.NET libraries. This is the easiest way to just pull in the whole platform as a reference. We expect that this will be the common way to build applications in ASP.NET going forward.
 
-### What is Build.RuntimeStore?
+## Exploring JIT behavior
 
-This is a big zip file of pre-optimized ASP.NET libraries. This is the best way for us to test the JIT because this is very close to what customers will use for local development or on a shared host like Azure in 2.0.0. Think of it like an add-on to the shared framework. Read the Explanation section below for a description of how this is wired up.
+Using the same PerfView trace collected above, there is an 'Individual JIT Events' section of the JitStats report which shows every time the JIT was invoked, which method it was compiling, and what triggered the compilation. By looking
+for methods with the 'TC' (Tiered Compilation) trigger you can determine all methods which were ever recompiled:
 
-### About MusicStore
+![JitStats2](./images/PerfView_JitStats2.jpg)
 
-MusicStore is a good sample of what a typical but *small* customer app would look like for a browser-based LOB app or public website. Notably it uses auth, logging, databases, ORM, caching, and dynamic view content. It's a good representation of the concerns a typical production app needs to address.
 
-We've modified the app to start up the server and perform a single HTTP request with timing information. Then it will perform 100 requests (single threaded) and print some statistics. We feel like this is a good benchmark for both server cold start and local development cold start, and is suitable for iterating on quickly due to the ease of running.
 
-### About AllReady
 
-"allReady is an open-source solution focused on increasing awareness, efficiency and impact of preparedness campaigns as they are delivered by humanitarian and disaster response organizations in local communities. http://www.htbox.org/projects/allready"
 
-It's a real-world web app which uses some of the most popular libraries like `MediatR`, `Autofac`, `Hangfire`, `EntityFrameworkCore`, `Newtonsoft.Json` and `WindowsAzure.Storage`. 
-The benchmark does exactly the same job the MusicStore benchmark does. Our goal is to have a real-world web application scenario to optimize and test the performance for real workloads.
+## Is tiered compilation living up to its potential?
 
-## Explanation (what does this do?)
+If the trace shows tiered compilation is running but the performance hasn't improved you might wonder if tiered compilation isn't running as well as it should be. Although a full analysis would require some non-trivial analysis of the .NET runtime, there are
+some simple tests anyone can run to determine the overhead tiered compilation adds relative to having the JIT generate code as fast as possible or having the JIT generate its best code.
 
-For an intro to dotnet CLI I suggest referring to their [docs](https://docs.microsoft.com/en-us/dotnet/articles/core/tools/index). We'll describe some of the steps here, but you should refer to the CLI docs as the primary source of information about CLI. If you have issues with the CLI please log them [here](https://github.com/dotnet/cli/issues).
+### Startup
 
-### Step 3a: `.\AspNet-GenerateStore.ps1 -InstallDir .store -Architecture x64 -Runtime win7-x64`
+Set the environment variable COMPlus\_JitMinOpts=1 to make the JIT create code as quickly as possible* and then run your application again, comparing its startup performance against startup with tiered compilation enabled.
+Ideally tiered compilation should give startup performance equal or just slighly worse than this COMPlus\_JitMinOpts configuration which accounts for some extra bookkeeping overhead that tiered compilation must do. If tiered
+ compilation is significantly slower than COMPlus\_JitMinOpts something may be amiss and I'd love to hear about it. On the other hand if tiered compilation is significantly faster it probably means your startup test is spending
+a lot of time running code rather than jit compiling it. You should try to pick a leaner definition of startup that will execute less code.
 
-This uses `dotnet store` to generate an optimized package store under `.store`. If you want to get an updated set of ASP.NET libraries, start at this step.
+*If we are being technical JitMinOpts tells the JIT not to optimize which isn't always the same thing as creating code as fast as possible. Some optimizations actually make compilation faster too! However for the current
+JIT implementation COMPlus\_JitMinOpts=1 is a very good approximation of generating jitted code as quickly possible.
 
--------------------
+### Steady-state
 
-This command will also output some messages about environment variables that it sets. Here's a quick guide:
+To test steady-state performance now set COMPlus\_ReadyToRun=0. This disables using code that is precompiled within (most) framework images and instead forces the JIT to create code for all of the methods. The code created by
+the JIT at runtime is more optimized than what can be statically compiled in the images. This results in a very slow startup because so much JIT compilation is occuring, but once complete the steady-state performance should
+be high. Compare this steady-state performance to steady-state performance of tiered compilation. Ideally tiered compilation should give performance equal or slightly worse than the COMPlus\_ReadyToRun=0 performance. If tiered
+compilation is substantially worse I'd love to hear about it, and if it is substantially better there is probably something fishy with the measurement.
 
-```
-Setting JITBENCH_ASPNET_VERSION to 2.0.0-preview1-24493
-```
 
-This means that the latest build of ASP.NET available at this time is `2.0.0-preview1-24493`. This environment variable will 'pin' the versions of the ASP.NET dependencies in the `.csproj` to match exactly the binaries that we just pulled down. There's no magic here, look at the `.csproj` to see how this works.
+# Run into trouble?
 
-```
-Setting JITBENCH_FRAMEWORK_VERSION to 2.0.0-preview2-002062-00
-```
+I hope your experiments run smoothly, but if not or you have questions please let me know. File an issue in this repo or at github.com/dotnet/coreclr and mention me, @noahfalk.
 
-This means that the version of the shared framework that was selected was `2.0.0-preview2-002062-00`. This environment variable will 'pin' the versions of the shared framework in the `.csproj` to match exactly the binaries that we just pulled down. There's no magic here, look at the `.csproj` to see how this works.
 
-```
-Setting JITBENCH_ASPNET_MANIFEST to D:\k\JitBench\.aspnet\AspNet.win-2.0.0-preview1-24493\x86\netcoreapp2.0\artifact.xml
-```
 
-This file `artifact.xml` is a listing of all of the packages that are included in the payload. If you look in this directory, you'll find a hierarchy that's very similar to a NuGet package hive. This environment variable will be used later by publishing to filter the set of packages that are copied to the publish output.
 
-```
-Setting DOTNET_SHARED_STORE to D:\k\JitBench\.aspnet\AspNet.win-2.0.0-preview1-24493
-```
 
-This variable is probed by the `dotnet` host as an additional set of packages that the runtime can use. Note that the binaries here will only be used if they *match* and if they *are not present in 'bin'*. That's why the two other environment variables are important! See [here](https://github.com/dotnet/core-setup/blob/master/Documentation/design-docs/DotNetCore-SharedPackageStore.md) for a more thorough description.
 
-### Step 3b: `.\AspNet-Install.ps1 -InstallDir .aspnet -Architecture x64`
-
-This downloads pre-optimized ASP.NET binaries and unzips them under `.aspnet`. If you want to get an updated set of ASP.NET libraries, start at this step.
-
--------------------
-
-This command will also set the same environment variables as step 3a.
-
-### Step 4: `dotnet restore`
-
-This will restore package and runtime dependencies. In general we already have these on the machine, we just need to update the generated files.
-
-This step will use the environment variables `JITBENCH_ASPNET_VERSION` and `JITBENCH_FRAMEWORK_VERSION` to pin the version of the ASP.NET libraries and shared framework based on Step 3.
-
-### Step 5: `dotnet publish -c Release -f netcoreapp2.0 --manifest $env:JITBENCH_ASPNET_MANIFEST`
-
-This will build and publish the application in the `Release` configuration and targeting `netcoreapp2.0` as the target framework. `netcoreapp2.0` is what we refer to as the *shared framework*.
-
-The `--manifest` argument specifies a list of binaries that are already present in a 'shared' location. Now this 'shared' location was created by step 2, and the list of files is stored in the `JITBENCH_ASPNET_MANIFEST` environment variable. Since these binaries weren't copied to the publish output, they will be loaded instead from `DOTNET_SHARED_STORE`. See [here](https://github.com/dotnet/core-setup/blob/master/Documentation/design-docs/DotNetCore-SharedPackageStore.md) for a more thorough description.
-
-### Step 6: `dotnet MusicStore.dll`
-
-Runs the app. We're using the *shared framework* so the actual `.exe` that runs here is `dotnet.exe`. The app itself is a `.dll` with a `Main(...)` method. It's **very important** that you do this with `pwd` set to the publish folder. The app will use the `pwd` to determine where view templates are located.
