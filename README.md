@@ -74,7 +74,8 @@ Test app output. This output is specific to the MusicStore test app, your apps i
 
 There are several options for turning on tiered compilation:
 1) Setting an environment variable 'set COMPlus_TieredCompilation=1' (windows), 'export COMPlus_TieredCompilation=1' (Linux). 
-2) Setting the app config property in the application's runtimeconfig.json "System.Runtime.TieredCompilation" : "true". This file is located adjacent to the application binary in your build or publish directory.
+2) Setting the app config property in the application's runtimeconfig.json "System.Runtime.TieredCompilation" : true ([Example](https://github.com/aspnet/JitBench/blob/tiered_compilation_demo/example_runtimeconfig/MusicStore.runtimeconfig.json#L10)).
+ This file is located adjacent to the application binary in your build or publish directory.
 3) Setting an MSBuild property in the application's project file \<TieredCompilation>true\</TieredCompilation> ([Example](https://github.com/dotnet/core/blob/e9e6c91206a5dc327dcb41a46219e13a8a6e66d6/samples/dotnetsay/dotnetsay.csproj#L21)).
  This causes the build to auto-generate a runtimeconfig.json with System.Runtime.TieredCompilation set to true.
 Known issue: In the 2.1 SDK the MSBuild TieredCompilation property doesn't correctly update the runtimeconfig.json during an incremental rebuild, use a one time clean build to work around this if you have just changed the property value.
