@@ -72,7 +72,14 @@ Test app output. This output is specific to the MusicStore test app, your apps i
 
 ## 1.6: Run the app with tiered compilation enabled
 
-Tiered compilation can be turned on with an environment variable 'COMPlus_TieredCompilation=1'. 
+There are several options for turning on tiered compilation:
+1) Setting an environment variable 'set COMPlus_TieredCompilation=1' (windows), 'export COMPlus_TieredCompilation=1' (Linux). 
+2) Setting the app config property in the application's runtimeconfig.json "System.Runtime.TieredCompilation" : "true". This file is located adjacent to the application binary in your build or publish directory.
+3) Setting an MSBuild property in the application's project file \<TieredCompilation>true\</TieredCompilation> ([Example](https://github.com/dotnet/core/blob/e9e6c91206a5dc327dcb41a46219e13a8a6e66d6/samples/dotnetsay/dotnetsay.csproj#L21)).
+ This causes the build to auto-generate a runtimeconfig.json with System.Runtime.TieredCompilation set to true.
+Known issue: In the 2.1 SDK the MSBuild TieredCompilation property doesn't correctly update the runtimeconfig.json during an incremental rebuild, use a one time clean build to work around this if you have just changed the property value.
+
+I find the environment variable easiest to work with for performance measurements whereas the app config or MSBuild property are more natural if you want to ship an application with tiered compilation enabled, but any option can work.
 
     F:\github\JitBench\src\MusicStore\bin\Release\netcoreapp2.1\publish>set COMPlus_TieredCompilation=1
     F:\github\JitBench\src\MusicStore\bin\Release\netcoreapp2.1\publish>dotnet MusicStore.dll
@@ -98,17 +105,11 @@ Tiered compilation can be turned on with an environment variable 'COMPlus_Tiered
      1501- 2000                 4955   652.77          1.24           1.53             1.49          4.01     0.56
      2001- 3000                 6446   670.40          1.18           1.49             1.48          2.69     0.29
 
-
-NOTE: If an environment variable is not convenient for your benchmarking scenario, tiered compilation can also be
-enabled by either of these options:
-1) setting the app config property in the application's runtimeconfig.json "System.Runtime.TieredCompilation" : "true"
-2) setting an MSBuild property in the application's project file \<TieredCompilation>true\</TieredCompilation> ([Example](https://github.com/dotnet/core/blob/e9e6c91206a5dc327dcb41a46219e13a8a6e66d6/samples/dotnetsay/dotnetsay.csproj#L21)).
- This causes the build to auto-generate a runtimeconfig.json with System.Runtime.TieredCompilation set to true.
-
-
 ## 1.7 Comparing performance
 
-The MusicStore test application uses System.Diagnostics.StopWatch and console output to quickly log some numbers for startup or steady-state performance, but ultimately you will have to decide what performance metrics are most important to your application. I won't attempt to repeat the wealth of general benchmarking and statistical analysis advice available around the web and thankfully these larger timescale benchmarks are usually forgiving, but a few common issues to look out for:
+The MusicStore test application uses System.Diagnostics.StopWatch and console output to quickly log some numbers for startup or steady-state performance, but ultimately you will have to decide what performance metrics are most important to your application.
+You can also use a profiler such as [PerfView](https://github.com/Microsoft/perfview/blob/master/documentation/Downloading.md) to collect before and after traces for comparison instead of adding instrumentation. 
+I won't repeat the wealth of general benchmarking and statistical analysis advice available around the web (as well as within the PerfView User's guide), but a few common issues to look out for:
 
 
 - Run your test application several times before paying any heed to the measurements. The first few runs will likely warm up various caches and the performance differences these caches cause will confound your results. Alternatively
@@ -116,7 +117,7 @@ you can measure the very first launch of the application after booting the machi
 keep it consistent.
 - Measure the same thing many times, then average.
 - Try to minimize the number of other applications, services, and network activity running on the machine. If you must have activity as part of the test environment try to keep it constant throughout the test period.
-- After you have measured, sanity check the measurement distribution and make sure averages aren't being unduly influenced by a few outliers or unexpectedly multi-modal measurements.
+- After you have measured, sanity check the measurement distribution and make sure averages aren't being unduly influenced by a few outliers.
 
 # Part 2 - Exploring the application behavior
 

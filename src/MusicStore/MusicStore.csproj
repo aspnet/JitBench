@@ -6,6 +6,7 @@
     <DefineConstants>$(DefineConstants);DEMO</DefineConstants>
     <AssemblyName>MusicStore</AssemblyName>
     <OutputType>Exe</OutputType>
+    <TieredCompilation>true</TieredCompilation>
   </PropertyGroup>
 
   <ItemGroup>
