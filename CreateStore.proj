@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <AspNetVersion>$(JITBENCH_ASPNET_VERSION)</AspNetVersion>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <NETCoreAppMaximumVersion>3.0</NETCoreAppMaximumVersion> 
   </PropertyGroup>
 
   <ItemGroup>

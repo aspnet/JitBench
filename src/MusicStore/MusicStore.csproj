@@ -2,7 +2,8 @@
   <Import Project="..\..\build\common.props" />
   <PropertyGroup>
     <Description>Music store application on ASP.NET 5</Description>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <NETCoreAppMaximumVersion>3.0</NETCoreAppMaximumVersion> 
     <DefineConstants>$(DefineConstants);DEMO</DefineConstants>
     <WarningsAsErrors>true</WarningsAsErrors>
     <PreserveCompilationContext>true</PreserveCompilationContext>
@@ -26,7 +27,7 @@
     <AspNetVersion>2.0.0</AspNetVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(RuntimeFrameworkVersion)' == '' ">
-    <RuntimeFrameworkVersion>2.2.0-*</RuntimeFrameworkVersion>
+    <RuntimeFrameworkVersion>3.0.0-*</RuntimeFrameworkVersion>
   </PropertyGroup>
   
   <ItemGroup>

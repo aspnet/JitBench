@@ -16,10 +16,10 @@ Set-Location src\MusicStore
 dotnet restore
 
 Write-Host -ForegroundColor Green "Publishing MusicStore"
-dotnet publish -c Release -f netcoreapp2.2 --manifest $env:JITBENCH_ASPNET_MANIFEST
+dotnet publish -c Release -f netcoreapp3.0 --manifest $env:JITBENCH_ASPNET_MANIFEST
 
 Write-Host -ForegroundColor Green "Running MusicStore"
-Set-Location bin\Release\netcoreapp2.2\publish
+Set-Location bin\Release\netcoreapp3.0\publish
 dotnet .\MusicStore.dll | Tee-Object -Variable output
 
 if (-not ($output.Contains("ASP.NET loaded from store")))

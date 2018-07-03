@@ -2,7 +2,7 @@
 param(
     [string] $InstallDir = "<auto>",
     [string] $AspNetVersion = "2.0.0",
-    [string] $Framework = "netcoreapp2.2",
+    [string] $Framework = "netcoreapp3.0",
     [string] $FrameworkVersion = "<auto>",
     [string] $Architecture = "x64",
     [string] $Runtime = "win7-x64")
