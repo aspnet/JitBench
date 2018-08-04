@@ -11,7 +11,7 @@ In .Net Core 2.1 we added a new preview feature called Tiered Compilation that h
 
 ## 1.1: Download the .Net Core 2.1 SDK
 
-Pick an installer from https://www.microsoft.com/net/download/dotnet-core that matches your OS. I am using Windows x64 here.
+Pick an installer from <https://www.microsoft.com/net/download> that matches your OS. I am using Windows x64 here.
 
 
 ## 1.2: Get source for the application you want to test
