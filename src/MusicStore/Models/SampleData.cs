@@ -23,6 +23,8 @@ namespace MusicStore.Models
             {
                 var db = serviceScope.ServiceProvider.GetService<MusicStoreContext>();
 
+                await db.Database.EnsureDeletedAsync();
+
                 if (await db.Database.EnsureCreatedAsync())
                 {
                     await InsertTestData(serviceProvider);
