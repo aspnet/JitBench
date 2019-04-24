@@ -1,7 +1,10 @@
+using System.Globalization;
+using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +18,7 @@ namespace MusicStore
     {
         private readonly Platform _platform;
 
-        public Startup(IHostingEnvironment hostingEnvironment)
+        public Startup(IWebHostEnvironment hostingEnvironment)
         {
             // Below code demonstrates usage of multiple configuration sources. For instance a setting say 'setting1'
             // is found in both the registered sources, then the later source will win. By this way a Local config
@@ -63,6 +66,8 @@ namespace MusicStore
                 });
             });
 
+            services.AddLogging();
+
             // Add MVC services to the services container
             services.AddMvc();
 
@@ -88,22 +93,22 @@ namespace MusicStore
             });
 
 
-            services.AddAuthentication().AddFacebook(options =>
+            services.AddAuthentication()
+                .AddFacebook(options =>
             {
                 options.AppId = "550624398330273";
                 options.AppSecret = "10e56a291d6b618da61b1e0dae3a8954";
             })
-            .AddGoogle(options =>
+                .AddGoogle(options =>
             {
                 options.ClientId = "995291875932-0rt7417v5baevqrno24kv332b7d6d30a.apps.googleusercontent.com";
                 options.ClientSecret = "J_AT57H5KH_ItmMdu0r6PfXm";
             })
-            .AddTwitter(options =>
+                .AddTwitter(options =>
             {
                 options.ConsumerKey = "lDSPIu480ocnXYZ9DumGCDw37";
                 options.ConsumerSecret = "fpo0oWRNc3vsZKlZSq1PyOSoeXlJd7NnG4Rfc94xbFXsdcc3nH";
             })
-
             // The MicrosoftAccount service has restrictions that prevent the use of
             // http://localhost:5001/ for test applications.
             // As such, here is how to change this sample to uses http://ktesting.com:5001/ instead.
@@ -118,8 +123,9 @@ namespace MusicStore
 
             // The sample app can then be run via:
             // dnx . web
-            .AddMicrosoftAccount(options =>
+                .AddMicrosoftAccount(options =>
             {
+                // MicrosoftAccount requires project changes
                 options.ClientId = "000000004012C08A";
                 options.ClientSecret = "GaMQ2hCnqAC6EcDLnXsAeBVIJOLmeutL";
             });
@@ -167,27 +173,53 @@ namespace MusicStore
 
         public void Configure(IApplicationBuilder app)
         {
+            // force the en-US culture, so that the app behaves the same even on machines with different default culture
+            var supportedCultures = new[] { new CultureInfo("en-US") };
+
+            app.UseRequestLocalization(new RequestLocalizationOptions
+            {
+                DefaultRequestCulture = new RequestCulture("en-US"),
+                SupportedCultures = supportedCultures,
+                SupportedUICultures = supportedCultures
+            });
+
+            app.Use((context, next) =>
+            {
+                context.Response.Headers["Arch"] = RuntimeInformation.ProcessArchitecture.ToString();
+                return next();
+            });
+
             // Configure Session.
             app.UseSession();
 
             // Add static files to the request pipeline
             app.UseStaticFiles();
 
+            // Add the endpoint routing matcher middleware to the request pipeline
+            app.UseRouting();
+
             // Add cookie-based authentication to the request pipeline
             app.UseAuthentication();
 
-            // Add MVC to the request pipeline
-            app.UseMvc(routes =>
+            // Add the authorization middleware to the request pipeline
+            app.UseAuthorization();
+
+            // Add endpoints to the request pipeline
+            app.UseEndpoints(endpoints =>
             {
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                     name: "areaRoute",
-                    template: "{area:exists}/{controller}/{action}",
+                    pattern: "{area:exists}/{controller}/{action}",
                     defaults: new { action = "Index" });
 
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                     name: "default",
-                    template: "{controller}/{action}/{id?}",
+                    pattern: "{controller}/{action}/{id?}",
                     defaults: new { controller = "Home", action = "Index" });
+
+                endpoints.MapControllerRoute(
+                    name: "api",
+                    pattern: "{controller}/{id?}");
             });
 
             //Populates the MusicStore sample data
