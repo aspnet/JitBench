@@ -94,7 +94,7 @@ install_dir="$(cd "$(dirname "$install_dir")"; pwd)/$(basename "$install_dir")"
 # Blow away the 'working directory' used by dotnet store. dotnet store is bad at cleaning this up.
 if [ -d "$work_dir" ]
 then
-    rm "$work_dir"
+    rm -rf "$work_dir"
 fi
 
 if [ "$framework_version" = "<auto>" ]
